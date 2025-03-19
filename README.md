@@ -1,4 +1,4 @@
-# Zirak HR - Modern Human Resource Management System
+# Zirak HR - AI Powered HR Innovation App
 
 ## Overview
 Zirak HR is a modern, full-stack Human Resource Management System built with Next.js 15, TypeScript, and MongoDB. This application provides a comprehensive solution for managing employee data, talent acquisition, and HR processes in a user-friendly interface.
