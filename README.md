@@ -180,4 +180,4 @@ For inquiries or collaboration opportunities, please contact:
 We extend our gratitude to Ähdus Technology and MLSA SZABIST Islamabad Chapter for their support and guidance throughout this project. Special thanks to our mentors, team members, and beta testers for their invaluable contributions.
 
 Thank you for exploring Zirak HR!
-We are committed to revolutionizing the hiring process with AI-driven, sustainable, and efficient solutions. 
+We are committed to revolutionizing the hiring process with AI-driven, sustainable, and efficient solutions.
