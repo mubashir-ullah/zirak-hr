@@ -57,6 +57,10 @@ export default function AnalyticsSection({ isLoading }: AnalyticsSectionProps) {
     applications: 0,
     timeToHire: 0,
     conversionRate: 0,
+    costPerHire: 0,
+    hiringEfficiency: 0,
+    retentionRate: 0,
+    qualityOfHire: 0,
     applicationTrend: {
       labels: [] as string[],
       data: [] as number[]
@@ -72,6 +76,14 @@ export default function AnalyticsSection({ isLoading }: AnalyticsSectionProps) {
     stagesData: {
       labels: [] as string[],
       data: [] as number[]
+    },
+    costData: {
+      labels: [] as string[],
+      data: [] as number[]
+    },
+    efficiencyData: {
+      labels: [] as string[],
+      data: [] as number[]
     }
   })
   
@@ -84,18 +96,75 @@ export default function AnalyticsSection({ isLoading }: AnalyticsSectionProps) {
   
   const fetchAnalyticsData = async () => {
     try {
-      // In a real app, this would be API calls
-      // const overviewResponse = await fetch(`/api/dashboard/hr/analytics/overview?timeRange=${timeRange}`)
-      // const applicationsResponse = await fetch(`/api/dashboard/hr/analytics/applications?timeRange=${timeRange}`)
-      // const sourcesResponse = await fetch(`/api/dashboard/hr/analytics/sources?timeRange=${timeRange}`)
-      // const jobsResponse = await fetch(`/api/dashboard/hr/analytics/jobs?timeRange=${timeRange}`)
-      // const stagesResponse = await fetch(`/api/dashboard/hr/analytics/stages?timeRange=${timeRange}`)
-      
-      // Simulate API delay
       setIsRefreshing(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Mock data based on time range
+      // Make real API calls to fetch analytics data
+      const overviewResponse = await fetch(`/api/analytics/overview?timeRange=${timeRange}`)
+      const applicationsResponse = await fetch(`/api/analytics/applications?timeRange=${timeRange}`)
+      const sourcesResponse = await fetch(`/api/analytics/sources?timeRange=${timeRange}`)
+      const departmentsResponse = await fetch(`/api/analytics/departments`)
+      const stagesResponse = await fetch(`/api/analytics/stages`)
+      const efficiencyResponse = await fetch(`/api/analytics/efficiency`)
+      
+      if (!overviewResponse.ok || !applicationsResponse.ok || !sourcesResponse.ok || 
+          !departmentsResponse.ok || !stagesResponse.ok || !efficiencyResponse.ok) {
+        throw new Error('One or more API requests failed')
+      }
+      
+      const overview = await overviewResponse.json()
+      const applications = await applicationsResponse.json()
+      const sources = await sourcesResponse.json()
+      const departments = await departmentsResponse.json()
+      const stages = await stagesResponse.json()
+      const efficiency = await efficiencyResponse.json()
+      
+      setAnalyticsData({
+        totalJobs: overview.totalJobs || 0,
+        activeJobs: overview.activeJobs || 0,
+        totalCandidates: overview.totalCandidates || 0,
+        applications: overview.applications || 0,
+        timeToHire: overview.timeToHire || 0,
+        conversionRate: overview.conversionRate || 0,
+        costPerHire: efficiency.metrics?.costPerHire || 0,
+        hiringEfficiency: efficiency.metrics?.hiringEfficiency || 0,
+        retentionRate: efficiency.metrics?.retentionRate || 0,
+        qualityOfHire: efficiency.metrics?.qualityOfHire || 0,
+        applicationTrend: {
+          labels: applications.labels || [],
+          data: applications.data || []
+        },
+        sourcesData: {
+          labels: sources.labels || [],
+          data: sources.data || []
+        },
+        departmentData: {
+          labels: departments.labels || [],
+          data: departments.data || []
+        },
+        stagesData: {
+          labels: stages.labels || [],
+          data: stages.data || []
+        },
+        costData: {
+          labels: efficiency.costData?.labels || [],
+          data: efficiency.costData?.data || []
+        },
+        efficiencyData: {
+          labels: efficiency.efficiencyData?.labels || [],
+          data: efficiency.efficiencyData?.data || []
+        }
+      })
+      
+      setIsRefreshing(false)
+    } catch (error) {
+      console.error('Failed to fetch analytics data:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to load analytics data. Please try again.',
+        variant: 'destructive'
+      })
+      
+      // Fallback to mock data if API fails
       let labels: string[] = []
       if (timeRange === 'week') {
         labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -114,6 +183,10 @@ export default function AnalyticsSection({ isLoading }: AnalyticsSectionProps) {
         applications: 47,
         timeToHire: 18,
         conversionRate: 12.5,
+        costPerHire: 4250,
+        hiringEfficiency: 78,
+        retentionRate: 85,
+        qualityOfHire: 82,
         applicationTrend: {
           labels,
           data: labels.map(() => Math.floor(Math.random() * 20) + 5)
@@ -129,17 +202,17 @@ export default function AnalyticsSection({ isLoading }: AnalyticsSectionProps) {
         stagesData: {
           labels: ['Applied', 'Screening', 'Interview', 'Assessment', 'Offer', 'Hired'],
           data: [100, 60, 40, 25, 15, 10]
+        },
+        costData: {
+          labels: ['Advertising', 'Recruiter Time', 'Tools & Software', 'Onboarding', 'Other'],
+          data: [1200, 1800, 650, 400, 200]
+        },
+        efficiencyData: {
+          labels: ['Engineering', 'Design', 'Marketing', 'Sales', 'Operations'],
+          data: [85, 72, 90, 78, 65]
         }
       })
       
-      setIsRefreshing(false)
-    } catch (error) {
-      console.error('Failed to fetch analytics data:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load analytics data. Please try again.',
-        variant: 'destructive'
-      })
       setIsRefreshing(false)
     }
   }
@@ -152,12 +225,36 @@ export default function AnalyticsSection({ isLoading }: AnalyticsSectionProps) {
     })
   }
   
-  const handleExport = (format: string) => {
-    toast({
-      title: 'Export Started',
-      description: `Exporting analytics data as ${format.toUpperCase()}...`,
-    })
-    // In a real app, this would trigger a download
+  const handleExport = async (format: string) => {
+    try {
+      toast({
+        title: 'Export Started',
+        description: `Exporting analytics data as ${format.toUpperCase()}...`,
+      })
+      
+      const response = await fetch(`/api/analytics/export?format=${format}&timeRange=${timeRange}`)
+      
+      if (!response.ok) {
+        throw new Error('Failed to export data')
+      }
+      
+      const result = await response.json()
+      
+      toast({
+        title: 'Export Complete',
+        description: result.message || `Analytics data has been exported as ${format.toUpperCase()}.`,
+      })
+      
+      // In a real implementation, this would trigger the browser to download the file
+      // For now, we'll just show a success message
+    } catch (error) {
+      console.error('Failed to export data:', error)
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export analytics data. Please try again.',
+        variant: 'destructive'
+      })
+    }
   }
 
   // Chart configurations
@@ -308,6 +405,10 @@ export default function AnalyticsSection({ isLoading }: AnalyticsSectionProps) {
               <Users className="h-4 w-4 mr-2" />
               Stages
             </TabsTrigger>
+            <TabsTrigger value="efficiency">
+              <Clock className="h-4 w-4 mr-2" />
+              Efficiency
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview">
@@ -389,6 +490,97 @@ export default function AnalyticsSection({ isLoading }: AnalyticsSectionProps) {
                 <Bar data={stagesConfig} options={chartOptions} />
               </div>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="efficiency">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <Card className="p-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">Cost Per Hire</h3>
+                  <p className="text-2xl font-bold mt-2">${analyticsData.costPerHire}</p>
+                </Card>
+                <Card className="p-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">Hiring Efficiency</h3>
+                  <p className="text-2xl font-bold mt-2">{analyticsData.hiringEfficiency}%</p>
+                </Card>
+                <Card className="p-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">Retention Rate</h3>
+                  <p className="text-2xl font-bold mt-2">{analyticsData.retentionRate}%</p>
+                </Card>
+                <Card className="p-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">Quality of Hire</h3>
+                  <p className="text-2xl font-bold mt-2">{analyticsData.qualityOfHire}%</p>
+                </Card>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="p-4">
+                  <h3 className="text-md font-medium mb-4">Recruitment Cost Breakdown</h3>
+                  <div className="h-80">
+                    <Pie 
+                      data={{
+                        labels: analyticsData.costData.labels,
+                        datasets: [
+                          {
+                            data: analyticsData.costData.data,
+                            backgroundColor: [
+                              '#d6ff00',
+                              '#36a2eb',
+                              '#ff6384',
+                              '#4bc0c0',
+                              '#9966ff'
+                            ],
+                            borderWidth: 1
+                          }
+                        ]
+                      }} 
+                      options={chartOptions} 
+                    />
+                  </div>
+                </Card>
+                
+                <Card className="p-4">
+                  <h3 className="text-md font-medium mb-4">Hiring Efficiency by Department</h3>
+                  <div className="h-80">
+                    <Bar 
+                      data={{
+                        labels: analyticsData.efficiencyData.labels,
+                        datasets: [
+                          {
+                            label: 'Efficiency (%)',
+                            data: analyticsData.efficiencyData.data,
+                            backgroundColor: '#d6ff00',
+                          }
+                        ]
+                      }} 
+                      options={chartOptions} 
+                    />
+                  </div>
+                </Card>
+              </div>
+              
+              <Card className="p-6">
+                <h3 className="text-md font-medium mb-4">Hiring Efficiency Metrics Explained</h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium">Cost Per Hire</h4>
+                    <p className="text-sm text-muted-foreground">Total recruitment costs divided by the number of hires in a given time period.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Hiring Efficiency</h4>
+                    <p className="text-sm text-muted-foreground">Measures how quickly candidates move through your recruitment process.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Retention Rate</h4>
+                    <p className="text-sm text-muted-foreground">Percentage of new hires that remain with the company after a defined period.</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Quality of Hire</h4>
+                    <p className="text-sm text-muted-foreground">Composite score based on performance reviews, manager satisfaction, and cultural fit.</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </Card>

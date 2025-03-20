@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useToast } from '@/components/ui/use-toast'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,17 +11,45 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
   Bell, Shield, Globe, Moon, Sun, 
-  Lock, Mail, Smartphone, Save
+  Lock, Mail, Smartphone, Save,
+  User, Building, Briefcase, Upload
 } from 'lucide-react'
 
-interface SettingsSectionProps {
-  isLoading: boolean
+interface UserProfile {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  department: string;
+  company: string;
+  profileImage: string;
+  bio?: string;
 }
 
-export default function SettingsSection({ isLoading }: SettingsSectionProps) {
+interface SettingsSectionProps {
+  isLoading?: boolean
+}
+
+export default function SettingsSection({ isLoading: initialLoading = false }: SettingsSectionProps) {
   const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(initialLoading)
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    _id: '',
+    name: '',
+    email: '',
+    phone: '',
+    role: 'hr_manager',
+    department: '',
+    company: '',
+    profileImage: '',
+    bio: ''
+  })
+  
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     applicationUpdates: true,
@@ -36,8 +64,8 @@ export default function SettingsSection({ isLoading }: SettingsSectionProps) {
   })
   
   const [accountSettings, setAccountSettings] = useState({
-    email: 'ahmed.khan@techinnovations.com',
-    phone: '+92 300 1234567',
+    email: '',
+    phone: '',
     password: '••••••••••',
     twoFactorAuth: false
   })
@@ -49,20 +77,102 @@ export default function SettingsSection({ isLoading }: SettingsSectionProps) {
   })
   
   const [isSaving, setIsSaving] = useState(false)
+  
+  // In a real app, this would come from authentication
+  const userId = 'current-user-id'
+  
+  // Fetch user settings and profile on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        // Fetch user profile
+        const profileResponse = await fetch(`/api/user/profile?userId=${userId}`)
+        
+        if (!profileResponse.ok) {
+          throw new Error('Failed to fetch user profile')
+        }
+        
+        const profileData = await profileResponse.json()
+        setUserProfile(profileData)
+        
+        // Fetch user settings
+        const settingsResponse = await fetch(`/api/settings?userId=${userId}`)
+        
+        if (!settingsResponse.ok) {
+          throw new Error('Failed to fetch settings')
+        }
+        
+        const settingsData = await settingsResponse.json()
+        
+        // Update state with fetched settings
+        if (settingsData.notifications) {
+          setNotificationSettings(settingsData.notifications)
+        }
+        
+        if (settingsData.privacy) {
+          setPrivacySettings(settingsData.privacy)
+        }
+        
+        if (settingsData.account) {
+          // Don't overwrite the password field
+          setAccountSettings({
+            ...settingsData.account,
+            password: '••••••••••'
+          })
+        }
+        
+        if (settingsData.appearance) {
+          setAppearanceSettings(settingsData.appearance)
+        }
+        
+      } catch (error) {
+        console.error('Error fetching data:', error)
+        toast({
+          title: 'Error',
+          description: 'Failed to load settings. Using defaults.',
+          variant: 'destructive'
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [toast, userId])
 
   const handleSaveSettings = async () => {
     setIsSaving(true)
     
     try {
-      // In a real app, this would be API calls to update settings
-      // await fetch('/api/settings/notifications', {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(notificationSettings)
-      // })
+      // Prepare the settings object
+      const settings = {
+        notifications: notificationSettings,
+        privacy: privacySettings,
+        account: {
+          ...accountSettings,
+          // Don't send the password if it's the masked value
+          password: accountSettings.password === '••••••••••' ? undefined : accountSettings.password
+        },
+        appearance: appearanceSettings
+      }
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Save all settings at once
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, settings })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to save settings')
+      }
+      
+      // Reset password field to masked value
+      setAccountSettings({
+        ...accountSettings,
+        password: '••••••••••'
+      })
       
       toast({
         title: 'Settings Saved',
@@ -77,6 +187,145 @@ export default function SettingsSection({ isLoading }: SettingsSectionProps) {
       })
     } finally {
       setIsSaving(false)
+    }
+  }
+  
+  // Save individual settings sections
+  const saveNotificationSettings = async () => {
+    try {
+      const response = await fetch('/api/settings/notifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, notifications: notificationSettings })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to save notification settings')
+      }
+      
+      return true
+    } catch (error) {
+      console.error('Error saving notification settings:', error)
+      return false
+    }
+  }
+  
+  const savePrivacySettings = async () => {
+    try {
+      const response = await fetch('/api/settings/privacy', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, privacy: privacySettings })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to save privacy settings')
+      }
+      
+      return true
+    } catch (error) {
+      console.error('Error saving privacy settings:', error)
+      return false
+    }
+  }
+  
+  const saveAccountSettings = async () => {
+    try {
+      // Only send the password if it's been changed
+      const accountData = {
+        ...accountSettings,
+        password: accountSettings.password === '••••••••••' ? undefined : accountSettings.password
+      }
+      
+      const response = await fetch('/api/settings/account', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, account: accountData })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to save account settings')
+      }
+      
+      // Reset password field to masked value
+      setAccountSettings({
+        ...accountSettings,
+        password: '••••••••••'
+      })
+      
+      return true
+    } catch (error) {
+      console.error('Error saving account settings:', error)
+      return false
+    }
+  }
+  
+  const saveAppearanceSettings = async () => {
+    try {
+      const response = await fetch('/api/settings/appearance', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, appearance: appearanceSettings })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to save appearance settings')
+      }
+      
+      return true
+    } catch (error) {
+      console.error('Error saving appearance settings:', error)
+      return false
+    }
+  }
+  
+  const saveUserProfile = async () => {
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, profile: userProfile })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to save user profile')
+      }
+      
+      return true
+    } catch (error) {
+      console.error('Error saving user profile:', error)
+      return false
+    }
+  }
+  
+  const handleDeleteAccount = async () => {
+    // Show a confirmation dialog
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      try {
+        const response = await fetch(`/api/settings/delete-account?userId=${userId}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to delete account');
+        }
+        
+        toast({
+          title: 'Account Deleted',
+          description: 'Your account has been successfully deleted.',
+        });
+        
+        // In a real app, you would redirect to the login page or home page
+        // window.location.href = '/';
+        
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete your account. Please try again.',
+          variant: 'destructive'
+        });
+      }
     }
   }
 
@@ -124,8 +373,12 @@ export default function SettingsSection({ isLoading }: SettingsSectionProps) {
           </Button>
         </div>
         
-        <Tabs defaultValue="notifications">
+        <Tabs defaultValue="profile">
           <TabsList className="mb-6">
+            <TabsTrigger value="profile">
+              <User className="h-4 w-4 mr-2" />
+              Profile
+            </TabsTrigger>
             <TabsTrigger value="notifications">
               <Bell className="h-4 w-4 mr-2" />
               Notifications
@@ -143,6 +396,113 @@ export default function SettingsSection({ isLoading }: SettingsSectionProps) {
               Appearance
             </TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="profile">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium mb-4">Profile Information</h3>
+                <div className="flex flex-col md:flex-row gap-8">
+                  <div className="flex flex-col items-center space-y-4">
+                    <Avatar className="w-32 h-32">
+                      <AvatarImage src={userProfile.profileImage || '/avatars/placeholder.png'} alt={userProfile.name} />
+                      <AvatarFallback>{userProfile.name?.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
+                    <Button variant="outline" size="sm">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Change Photo
+                    </Button>
+                  </div>
+                  
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <Label htmlFor="profile-name" className="font-medium">
+                        Full Name
+                      </Label>
+                      <Input 
+                        id="profile-name" 
+                        value={userProfile.name}
+                        onChange={(e) => 
+                          setUserProfile({...userProfile, name: e.target.value})
+                        }
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="profile-company" className="font-medium">
+                          Company
+                        </Label>
+                        <div className="flex items-center mt-1">
+                          <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <Input 
+                            id="profile-company" 
+                            value={userProfile.company}
+                            onChange={(e) => 
+                              setUserProfile({...userProfile, company: e.target.value})
+                            }
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="profile-department" className="font-medium">
+                          Department
+                        </Label>
+                        <div className="flex items-center mt-1">
+                          <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <Input 
+                            id="profile-department" 
+                            value={userProfile.department}
+                            onChange={(e) => 
+                              setUserProfile({...userProfile, department: e.target.value})
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="profile-bio" className="font-medium">
+                        Bio
+                      </Label>
+                      <Textarea 
+                        id="profile-bio" 
+                        value={userProfile.bio || ''}
+                        onChange={(e) => 
+                          setUserProfile({...userProfile, bio: e.target.value})
+                        }
+                        placeholder="Tell us about yourself"
+                        className="mt-1 resize-none"
+                        rows={4}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="profile-role" className="font-medium">
+                        Role
+                      </Label>
+                      <Select 
+                        value={userProfile.role} 
+                        onValueChange={(value) => 
+                          setUserProfile({...userProfile, role: value})
+                        }
+                      >
+                        <SelectTrigger id="profile-role" className="mt-1">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="hr_manager">HR Manager</SelectItem>
+                          <SelectItem value="recruiter">Recruiter</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
           
           <TabsContent value="notifications">
             <div className="space-y-6">
@@ -375,7 +735,7 @@ export default function SettingsSection({ isLoading }: SettingsSectionProps) {
               
               <div>
                 <h3 className="text-lg font-medium mb-4 text-red-600">Danger Zone</h3>
-                <Button variant="destructive">
+                <Button variant="destructive" onClick={handleDeleteAccount}>
                   Delete Account
                 </Button>
               </div>

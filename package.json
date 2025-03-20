@@ -54,6 +54,7 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.454.0",
     "mongodb": "^6.15.0",
+    "mongoose": "^8.12.1",
     "next": "15.1.0",
     "next-auth": "^4.24.11",
     "next-themes": "latest",

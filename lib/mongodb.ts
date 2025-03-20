@@ -61,3 +61,28 @@ if (process.env.NODE_ENV === 'development') {
 // Export a module-scoped MongoClient promise. By doing this in a
 // separate module, the client can be shared across functions.
 export default clientPromise 
+
+/**
+ * Connect to the database and return both the client and db instances
+ * This is used by API routes to interact with MongoDB
+ */
+export async function connectToDatabase() {
+  try {
+    // Ensure client is initialized by calling connectToMongoDB
+    if (!clientPromise) {
+      await connectToMongoDB();
+    }
+    
+    const client = await clientPromise;
+    if (!client) {
+      throw new Error('MongoDB client is null');
+    }
+    
+    const db = client.db(process.env.MONGODB_DB || 'zirak-hr');
+    
+    return { client, db };
+  } catch (error) {
+    console.error('Error connecting to database:', error);
+    throw new Error('Unable to connect to database');
+  }
+}
