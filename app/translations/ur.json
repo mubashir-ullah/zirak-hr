@@ -1,0 +1,31 @@
+{
+  "nav": {
+    "home": "ہوم",
+    "features": "خصوصیات",
+    "about": "ہمارے بارے میں"
+  },
+  "auth": {
+    "login": "لاگ ان",
+    "register": "رجسٹر"
+  },
+  "App Features": "ایپ کی خصوصیات",
+  "From smart resume parsing to intelligent candidate matching – Zirak HR transforms the way you recruit.": "سمارٹ ریزیوم پارسنگ سے لے کر انٹیلیجنٹ امیدوار میچنگ تک - زیرک ایچ آر بھرتی کے طریقے کو تبدیل کرتا ہے۔",
+  "Quick Profile Creation": "فوری پروفائل تخلیق",
+  "Let candidates create their profiles in minutes, making it easy to find the right talent.": "امیدواروں کو منٹوں میں اپنا پروفائل بنانے دیں، درست صلاحیت کو تلاش کرنا آسان بنائیں۔",
+  "Job Matching": "جاب میچنگ",
+  "AI powered matching to find oppurtunities for candidates.": "مصنوعی ذہانت کی مدد سے امیدواروں کے لیے مواقع تلاش کریں۔",
+  "On-Click Job Apply": "ون کلک جاب اپلائی",
+  "Candidates can apply to jobs with a single click, making it easy to find the right talent.": "امیدوار ایک کلک سے نوکریوں کے لیے درخواست دے سکتے ہیں، درست صلاحیت کو تلاش کرنا آسان بناتا ہے۔",
+  "Talent Matching": "ٹیلنٹ میچنگ",
+  "AI powered to find the best skillfull candidates for your job openings.": "آپ کی جاب اوپننگز کے لیے بہترین ہنرمند امیدواروں کو تلاش کرنے کے لیے مصنوعی ذہانت کا استعمال۔",
+  "Talent Pool": "ٹیلنٹ پول",
+  "A talent pool to find the best candidates with advanced search filters.": "ایڈوانسڈ سرچ فلٹرز کے ساتھ بہترین امیدواروں کو تلاش کرنے کے لیے ٹیلنٹ پول۔",
+  "Skill Assessment": "مہارت کی تشخیص",
+  "AI powered skills assessment to assess the skills of candidates.": "امیدواروں کی مہارتوں کی تشخیص کے لیے مصنوعی ذہانت پر مبنی مہارت کی تشخیص۔",
+  "Application Tracking": "درخواست کی ٹریکنگ",
+  "Real time application tracking to see the status of the job applications.": "جاب درخواستوں کی حیثیت دیکھنے کے لیے ریئل ٹائم درخواست ٹریکنگ۔",
+  "User Friendly Interface": "صارف دوست انٹرفیس",
+  "A user friendly interface to make it easy to find the right talent.": "درست صلاحیت کو تلاش کرنے کے لیے آسان صارف دوست انٹرفیس۔",
+  "Green Coding and Sustainable App": "گرین کوڈنگ اور پائیدار ایپ",
+  "A green coding and sustainable app which cares for the environment.": "ایک گرین کوڈنگ اور پائیدار ایپ جو ماحول کا خیال رکھتی ہے۔"
+} 
