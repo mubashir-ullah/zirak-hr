@@ -5,12 +5,39 @@ import GitHubProvider from 'next-auth/providers/github'
 import LinkedInProvider from 'next-auth/providers/linkedin'
 import AppleProvider from 'next-auth/providers/apple'
 import clientPromise from '@/lib/mongodb'
-import { User } from '@/models/User'
+import { User, IUser } from '@/models/User'
 import bcrypt from 'bcryptjs'
 import { NextAuthOptions } from 'next-auth'
 
 // Define types for our application
-type Role = 'talent' | 'hiring_manager';
+type Role = 'talent' | 'hiring_manager' | 'admin';
+
+// Extend the default session and JWT types
+declare module "next-auth" {
+  interface User {
+    role: Role;
+    needsRoleSelection?: boolean;
+  }
+  
+  interface Session {
+    user: {
+      id?: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      role: Role;
+      needsRoleSelection?: boolean;
+    }
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    role: Role;
+    needsRoleSelection?: boolean;
+    userId?: string;
+  }
+}
 
 interface MockUser {
   id: string;
@@ -185,7 +212,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         try {
           if (!credentials?.email || !credentials?.password) {
             throw new Error('Please enter your email and password');
@@ -210,11 +237,13 @@ export const authOptions: NextAuthOptions = {
                   throw new Error('Invalid password');
                 }
                 
+                // Return user in the format expected by NextAuth
                 return {
                   id: user._id?.toString() || '',
                   name: user.name,
                   email: user.email,
                   role: user.role,
+                  needsRoleSelection: user.needsRoleSelection || false,
                   image: null,
                 };
               }
@@ -234,11 +263,13 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid password');
           }
 
+          // Return mock user in the format expected by NextAuth
           return {
             id: mockUser.id,
             name: mockUser.name,
             email: mockUser.email,
             role: mockUser.role,
+            needsRoleSelection: false,
             image: mockUser.image,
           };
         } catch (error: any) {
@@ -249,32 +280,29 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user, account }) {
-      console.log('JWT Callback - Token before:', JSON.stringify(token));
-      console.log('JWT Callback - User:', user ? JSON.stringify(user) : 'No user');
-      
       if (user) {
-        token.role = (user as any).role;
-        token.id = user.id;
-        token.needsRoleSelection = (user as any).needsRoleSelection || false;
+        token.userId = user.id;
+        token.role = user.role;
+        token.needsRoleSelection = user.needsRoleSelection;
+        console.log('JWT Callback - User data:', { 
+          id: user.id, 
+          role: user.role, 
+          needsRoleSelection: user.needsRoleSelection 
+        });
       }
-      if (account) {
-        token.provider = account.provider;
-      }
-      
-      console.log('JWT Callback - Token after:', JSON.stringify(token));
       return token;
     },
     async session({ session, token }) {
-      console.log('Session Callback - Token:', JSON.stringify(token));
-      
       if (session.user) {
-        (session.user as any).role = token.role;
-        (session.user as any).id = token.id;
-        (session.user as any).provider = token.provider;
-        (session.user as any).needsRoleSelection = token.needsRoleSelection || false;
+        session.user.id = token.userId;
+        session.user.role = token.role;
+        session.user.needsRoleSelection = token.needsRoleSelection;
+        console.log('Session Callback - Updated session:', { 
+          id: session.user.id, 
+          role: session.user.role, 
+          needsRoleSelection: session.user.needsRoleSelection 
+        });
       }
-      
-      console.log('Session Callback - Session:', JSON.stringify(session));
       return session;
     },
     async signIn({ user, account, profile }) {
@@ -305,6 +333,15 @@ export const authOptions: NextAuthOptions = {
               // Update existing user with latest profile info
               user.id = dbUser._id?.toString() || user.id;
               (user as any).role = dbUser.role;
+              
+              // If user has no role set or needsRoleSelection is true, they need to select a role
+              (user as any).needsRoleSelection = dbUser.needsRoleSelection === true || !dbUser.role;
+              
+              console.log('Existing user login:', {
+                id: user.id,
+                role: (user as any).role,
+                needsRoleSelection: (user as any).needsRoleSelection
+              });
             } else {
               // For new social login users, we'll set needsRoleSelection flag
               // and redirect them to role selection page via middleware
@@ -321,10 +358,16 @@ export const authOptions: NextAuthOptions = {
                 email: email,
                 password: hashedPassword,
                 role: 'talent', // Default role, will be updated after selection
-                socialProvider: account?.provider
+                socialProvider: account?.provider,
+                needsRoleSelection: true
               });
               
-              console.log('Created new social login user:', newUser._id);
+              console.log('Created new social login user:', {
+                id: newUser._id,
+                role: 'talent',
+                needsRoleSelection: true
+              });
+              
               user.id = newUser._id?.toString() || user.id;
               (user as any).role = 'talent'; // Temporary role
             }
@@ -346,6 +389,7 @@ export const authOptions: NextAuthOptions = {
           // Update existing user with latest profile info
           user.id = existingMockUser.id;
           (user as any).role = existingMockUser.role;
+          (user as any).needsRoleSelection = false;
         } else {
           // For new social login users, we'll set needsRoleSelection flag
           // and redirect them to role selection page via middleware
@@ -379,10 +423,11 @@ export const authOptions: NextAuthOptions = {
       
       // Handle custom redirects based on user type
       if (url.startsWith(baseUrl)) {
-        // After sign in, redirect to dashboard
+        // After sign in with social providers, redirect to dashboard
+        // The middleware will handle redirecting to role selection if needed
         if (url.includes('/api/auth/signin') || url.includes('/api/auth/callback')) {
-          const redirectUrl = `${baseUrl}/dashboard`; // Let middleware handle specific dashboard routing
-          console.log('Redirecting to:', redirectUrl);
+          const redirectUrl = `${baseUrl}/dashboard`;
+          console.log('Social login detected, redirecting to:', redirectUrl);
           return redirectUrl;
         }
       }

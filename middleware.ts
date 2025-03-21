@@ -38,7 +38,11 @@ export default withAuth(
     const { pathname } = req.nextUrl
     
     console.log('Middleware - Path:', pathname)
-    console.log('Middleware - Token:', token ? JSON.stringify(token) : 'No token')
+    console.log('Middleware - Token:', token ? JSON.stringify({
+      id: token.userId,
+      role: token.role,
+      needsRoleSelection: token.needsRoleSelection
+    }) : 'No token')
     
     // Protect dashboard routes
     if (pathname.startsWith('/dashboard')) {
@@ -49,15 +53,16 @@ export default withAuth(
       }
       
       // Check if user needs to select a role
-      if (token.needsRoleSelection === true && pathname !== '/dashboard/role-selection') {
-        console.log('Middleware - User needs role selection, redirecting')
+      if (token.needsRoleSelection === true) {
+        // Allow access to role selection page
+        if (pathname === '/dashboard/role-selection') {
+          console.log('Middleware - User needs role selection, already on selection page')
+          return NextResponse.next()
+        }
+        
+        // Redirect to role selection page for all other dashboard routes
+        console.log('Middleware - User needs role selection, redirecting to selection page')
         return NextResponse.redirect(new URL('/dashboard/role-selection', req.url))
-      }
-      
-      // Allow access to role selection page
-      if (pathname === '/dashboard/role-selection') {
-        console.log('Middleware - Allowing access to role selection page')
-        return NextResponse.next()
       }
       
       // Redirect based on user role for the main dashboard route

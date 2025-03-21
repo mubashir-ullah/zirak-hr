@@ -6,10 +6,10 @@ import bcrypt from 'bcryptjs'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { name, email, password, role, organization, position } = body
+    const { name, email, password, organization, position } = body
 
     // Validate required fields
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -55,8 +55,10 @@ export async function POST(request: Request) {
       name,
       email,
       password: hashedPassword,
-      role,
-      ...(role === 'hiring_manager' ? { organization, position } : {})
+      role: 'talent', // Default role, will be updated after selection
+      organization,
+      position,
+      needsRoleSelection: true // Flag to indicate user needs to select a role
     })
 
     // Remove password from response
@@ -85,4 +87,4 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
-} 
+}

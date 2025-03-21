@@ -28,6 +28,29 @@ export default function LoginPage() {
     if (searchParams.get('registered')) {
       setSuccessMessage('Registration successful! Please log in.')
     }
+    
+    // Check if user was redirected after selecting a role
+    if (searchParams.get('roleSelected') === 'true') {
+      setRedirecting(true)
+      
+      // Get the stored redirect URL from localStorage
+      const redirectUrl = localStorage.getItem('redirectAfterLogin')
+      
+      if (redirectUrl) {
+        console.log('Role was selected, redirecting to:', redirectUrl)
+        // Clear the stored URL
+        localStorage.removeItem('redirectAfterLogin')
+        
+        // Auto sign in after role selection (this is just for UI feedback)
+        setLoading(true)
+        setSuccessMessage('Role selected successfully! Redirecting to dashboard...')
+        
+        // Redirect after a short delay to allow the user to see the message
+        setTimeout(() => {
+          window.location.href = redirectUrl
+        }, 1500)
+      }
+    }
   }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

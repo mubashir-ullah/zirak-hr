@@ -5,10 +5,11 @@ export interface IUser {
   name: string
   email: string
   password: string
-  role: 'talent' | 'hiring_manager'
+  role: 'talent' | 'hiring_manager' | 'admin'
   organization?: string
   position?: string
   socialProvider?: string
+  needsRoleSelection?: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -18,10 +19,11 @@ export class User implements IUser {
   name: string
   email: string
   password: string
-  role: 'talent' | 'hiring_manager'
+  role: 'talent' | 'hiring_manager' | 'admin'
   organization?: string
   position?: string
   socialProvider?: string
+  needsRoleSelection?: boolean
   createdAt: Date
   updatedAt: Date
 
@@ -33,6 +35,7 @@ export class User implements IUser {
     this.organization = data.organization
     this.position = data.position
     this.socialProvider = data.socialProvider
+    this.needsRoleSelection = data.needsRoleSelection
     this.createdAt = new Date()
     this.updatedAt = new Date()
   }

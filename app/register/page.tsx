@@ -11,12 +11,9 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { SocialLoginButtons } from '@/components/auth/social-login-buttons'
 import { signIn } from 'next-auth/react'
 
-type UserRole = 'talent' | 'hiring_manager'
-
 export default function Register() {
   const router = useRouter()
   const { t } = useLanguage()
-  const [role, setRole] = useState<UserRole>('talent')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -60,11 +57,8 @@ export default function Register() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role,
-          ...(role === 'hiring_manager' && {
-            organization: formData.organization,
-            position: formData.position
-          })
+          organization: formData.organization,
+          position: formData.position
         }),
       })
 
@@ -85,11 +79,10 @@ export default function Register() {
         throw new Error(signInResult.error || 'Login failed after registration')
       }
 
-      // Registration and login successful - redirect to dashboard
-      router.push('/dashboard')
+      // Registration and login successful - redirect to role selection page
+      router.push('/dashboard/role-selection')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
-    } finally {
       setLoading(false)
     }
   }
@@ -110,47 +103,6 @@ export default function Register() {
               {error}
             </div>
           )}
-
-          {/* Role Selection */}
-          <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-xl mb-8 border-2 border-[#d6ff00]">
-            <h2 className="text-lg font-medium mb-4">I want to register as: <span className="text-red-500">*</span></h2>
-            <div className="space-y-4">
-              <label className={`flex items-center space-x-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                role === 'talent' ? 'border-[#d6ff00] bg-[#d6ff00]/10' : 'border-gray-200 hover:border-[#d6ff00]/50'
-              }`}>
-                <input
-                  type="radio"
-                  name="role"
-                  value="talent"
-                  checked={role === 'talent'}
-                  onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="h-4 w-4 text-[#d6ff00]"
-                  required
-                />
-                <div className="flex flex-col">
-                  <span className="font-medium">I'm a Talent</span>
-                  <span className="text-sm text-gray-500">Looking for job opportunities and want to showcase your skills</span>
-                </div>
-              </label>
-              <label className={`flex items-center space-x-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                role === 'hiring_manager' ? 'border-[#d6ff00] bg-[#d6ff00]/10' : 'border-gray-200 hover:border-[#d6ff00]/50'
-              }`}>
-                <input
-                  type="radio"
-                  name="role"
-                  value="hiring_manager"
-                  checked={role === 'hiring_manager'}
-                  onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="h-4 w-4 text-[#d6ff00]"
-                  required
-                />
-                <div className="flex flex-col">
-                  <span className="font-medium">I'm a Hiring Manager</span>
-                  <span className="text-sm text-gray-500">Looking to hire talented professionals for your organization</span>
-                </div>
-              </label>
-            </div>
-          </div>
 
           {/* Social Login */}
           <div className="mb-8">
@@ -195,35 +147,31 @@ export default function Register() {
               />
             </div>
 
-            {role === 'hiring_manager' && (
-              <>
-                <div>
-                  <label htmlFor="organization" className="block text-sm font-medium mb-2">Organization Name</label>
-                  <input
-                    type="text"
-                    id="organization"
-                    name="organization"
-                    value={formData.organization}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d6ff00] focus:border-transparent"
-                  />
-                </div>
+            <div>
+              <label htmlFor="organization" className="block text-sm font-medium mb-2">Organization Name</label>
+              <input
+                type="text"
+                id="organization"
+                name="organization"
+                value={formData.organization}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d6ff00] focus:border-transparent"
+              />
+            </div>
 
-                <div>
-                  <label htmlFor="position" className="block text-sm font-medium mb-2">Role/Position</label>
-                  <input
-                    type="text"
-                    id="position"
-                    name="position"
-                    value={formData.position}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d6ff00] focus:border-transparent"
-                  />
-                </div>
-              </>
-            )}
+            <div>
+              <label htmlFor="position" className="block text-sm font-medium mb-2">Role/Position</label>
+              <input
+                type="text"
+                id="position"
+                name="position"
+                value={formData.position}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d6ff00] focus:border-transparent"
+              />
+            </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium mb-2">Password</label>
