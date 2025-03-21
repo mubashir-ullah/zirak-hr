@@ -6,7 +6,7 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-center">
           <p className="flex items-center text-xs text-gray-600 dark:text-gray-400">
-            {new Date().getFullYear()} Zirak HR. All rights reserved.
+            Made with ❤️ by Team Highlander | &copy; {new Date().getFullYear()} Team Highlander. All rights reserved.
           </p>
         </div>
       </div>
