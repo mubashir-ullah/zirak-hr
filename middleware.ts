@@ -23,6 +23,15 @@ const hiringManagerRoutes = [
   '/dashboard/hiring-manager/manage-jobs',
 ]
 
+const adminRoutes = [
+  '/dashboard/admin',
+  '/dashboard/admin/profile',
+  '/dashboard/admin/user-management',
+  '/dashboard/admin/system-config',
+  '/dashboard/admin/analytics',
+  '/dashboard/admin/settings',
+]
+
 export default withAuth(
   async function middleware(req) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
@@ -59,6 +68,9 @@ export default withAuth(
         } else if (token.role === 'hiring_manager') {
           console.log('Middleware - Redirecting hiring manager to hiring manager dashboard')
           return NextResponse.redirect(new URL('/dashboard/hiring-manager', req.url))
+        } else if (token.role === 'admin') {
+          console.log('Middleware - Redirecting admin to admin dashboard')
+          return NextResponse.redirect(new URL('/dashboard/admin', req.url))
         } else {
           console.log('Middleware - No role defined, redirecting to role selection')
           return NextResponse.redirect(new URL('/dashboard/role-selection', req.url))
@@ -69,27 +81,51 @@ export default withAuth(
       const userRole = token.role as string
       console.log('Middleware - User role:', userRole)
       
-      // Prevent talent from accessing hiring manager routes
+      // Prevent talent from accessing hiring manager and admin routes
       if (userRole === 'talent') {
         const isHiringManagerRoute = hiringManagerRoutes.some(route => 
           pathname === route || pathname.startsWith(`${route}/`)
         )
         
-        if (isHiringManagerRoute) {
-          console.log('Middleware - Talent trying to access hiring manager route, redirecting')
+        const isAdminRoute = adminRoutes.some(route => 
+          pathname === route || pathname.startsWith(`${route}/`)
+        )
+        
+        if (isHiringManagerRoute || isAdminRoute) {
+          console.log('Middleware - Talent trying to access restricted route, redirecting')
           return NextResponse.redirect(new URL('/dashboard/talent', req.url))
         }
       }
       
-      // Prevent hiring manager from accessing talent routes
+      // Prevent hiring manager from accessing talent and admin routes
       if (userRole === 'hiring_manager') {
         const isTalentRoute = talentRoutes.some(route => 
           pathname === route || pathname.startsWith(`${route}/`)
         )
         
-        if (isTalentRoute) {
-          console.log('Middleware - Hiring manager trying to access talent route, redirecting')
+        const isAdminRoute = adminRoutes.some(route => 
+          pathname === route || pathname.startsWith(`${route}/`)
+        )
+        
+        if (isTalentRoute || isAdminRoute) {
+          console.log('Middleware - Hiring manager trying to access restricted route, redirecting')
           return NextResponse.redirect(new URL('/dashboard/hiring-manager', req.url))
+        }
+      }
+      
+      // Prevent admin from accessing talent and hiring manager routes
+      if (userRole === 'admin') {
+        const isTalentRoute = talentRoutes.some(route => 
+          pathname === route || pathname.startsWith(`${route}/`)
+        )
+        
+        const isHiringManagerRoute = hiringManagerRoutes.some(route => 
+          pathname === route || pathname.startsWith(`${route}/`)
+        )
+        
+        if (isTalentRoute || isHiringManagerRoute) {
+          console.log('Middleware - Admin trying to access restricted route, redirecting')
+          return NextResponse.redirect(new URL('/dashboard/admin', req.url))
         }
       }
     }

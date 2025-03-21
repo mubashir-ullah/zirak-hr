@@ -18,7 +18,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { 
   Search, Filter, ArrowUpDown, Star, 
   MessageCircle, Briefcase, MapPin, 
-  ChevronRight, Download, Share2, X
+  ChevronRight, Download, Share2, X,
+  Code, Database, Server, Globe
 } from 'lucide-react'
 
 interface Candidate {
@@ -39,6 +40,11 @@ interface Candidate {
   avatar: string
 }
 
+interface TechnicalSkillCategory {
+  name: string
+  skills: string[]
+}
+
 interface TalentPoolSectionProps {
   isLoading: boolean
 }
@@ -55,6 +61,8 @@ export default function TalentPoolSection({ isLoading }: TalentPoolSectionProps)
   const [cityFilter, setCityFilter] = useState<string>('all')
   const [skillsFilter, setSkillsFilter] = useState<string[]>([])
   const [availableSkills, setAvailableSkills] = useState<string[]>([])
+  const [skillCategories, setSkillCategories] = useState<string[]>([])
+  const [selectedSkillCategory, setSelectedSkillCategory] = useState<string>('all')
   const [isLoadingSkills, setIsLoadingSkills] = useState(false)
   const [skillInput, setSkillInput] = useState('')
   const [languageFilter, setLanguageFilter] = useState<string>('all')
@@ -95,28 +103,60 @@ export default function TalentPoolSection({ isLoading }: TalentPoolSectionProps)
   // Fetch available skills when component mounts
   useEffect(() => {
     if (!isLoading) {
-      fetchAvailableSkills();
+      fetchTechnicalSkills();
     }
   }, [isLoading]);
   
-  // Fetch available skills from the API
-  const fetchAvailableSkills = async () => {
+  // Fetch technical skills from the API
+  const fetchTechnicalSkills = async () => {
     setIsLoadingSkills(true);
     try {
-      const response = await fetch('/api/talent/skills');
+      const response = await fetch('/api/talent/skills/technical');
       if (!response.ok) {
-        throw new Error('Failed to fetch skills');
+        throw new Error('Failed to fetch technical skills');
       }
       
       const data = await response.json();
-      setAvailableSkills(data);
+      setAvailableSkills(data.skills);
+      setSkillCategories(data.categories);
     } catch (error) {
-      console.error('Failed to fetch skills:', error);
-      // Fallback to empty array if API fails
+      console.error('Failed to fetch technical skills:', error);
+      // Fallback to empty arrays if API fails
+      setAvailableSkills([]);
+      setSkillCategories([]);
+    } finally {
+      setIsLoadingSkills(false);
+    }
+  };
+  
+  // Fetch skills by category
+  const fetchSkillsByCategory = async (category: string) => {
+    if (category === 'all') {
+      fetchTechnicalSkills();
+      return;
+    }
+    
+    setIsLoadingSkills(true);
+    try {
+      const response = await fetch(`/api/talent/skills/technical?category=${category}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch skills for category');
+      }
+      
+      const data = await response.json();
+      setAvailableSkills(data.skills);
+    } catch (error) {
+      console.error('Failed to fetch skills for category:', error);
       setAvailableSkills([]);
     } finally {
       setIsLoadingSkills(false);
     }
+  };
+  
+  // Handle skill category change
+  const handleCategoryChange = (category: string) => {
+    setSelectedSkillCategory(category);
+    fetchSkillsByCategory(category);
   };
   
   // Add a skill to the filter
@@ -217,6 +257,83 @@ export default function TalentPoolSection({ isLoading }: TalentPoolSectionProps)
     
     setCandidates(defaultCandidates);
   }
+  
+  // Filter candidates based on selected filters
+  const filteredCandidates = candidates.filter(candidate => {
+    // Filter by search query
+    if (searchQuery && !candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+        !candidate.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !candidate.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))) {
+      return false;
+    }
+    
+    // Filter by tab
+    if (activeTab === 'shortlisted' && candidate.matchScore < 80) {
+      return false;
+    }
+    
+    // Filter by experience
+    if (candidate.experience < experienceFilter[0] || candidate.experience > experienceFilter[1]) {
+      return false;
+    }
+    
+    // Filter by country
+    if (countryFilter !== 'all' && candidate.country.toLowerCase() !== countryFilter.toLowerCase()) {
+      return false;
+    }
+    
+    // Filter by city
+    if (cityFilter !== 'all' && candidate.city.toLowerCase() !== cityFilter.toLowerCase()) {
+      return false;
+    }
+    
+    // Filter by skills - candidate must have ALL selected skills
+    if (skillsFilter.length > 0 && !skillsFilter.every(skill => 
+      candidate.skills.some(candidateSkill => 
+        candidateSkill.toLowerCase() === skill.toLowerCase()
+      )
+    )) {
+      return false;
+    }
+    
+    // Filter by language
+    if (languageFilter !== 'all' && !candidate.languages.some(lang => 
+      lang.language.toLowerCase() === languageFilter.toLowerCase()
+    )) {
+      return false;
+    }
+    
+    // Filter by language proficiency
+    if (languageProficiencyFilter !== 'all' && languageFilter !== 'all' && !candidate.languages.some(lang => 
+      lang.language.toLowerCase() === languageFilter.toLowerCase() && 
+      lang.proficiency.toLowerCase() === languageProficiencyFilter.toLowerCase()
+    )) {
+      return false;
+    }
+    
+    // Filter by German level
+    if (germanLevelFilter !== 'all' && candidate.germanLevel !== germanLevelFilter) {
+      return false;
+    }
+    
+    // Filter by visa status
+    if (visaRequiredFilter !== 'all') {
+      const requiresVisa = visaRequiredFilter === 'required';
+      if (requiresVisa && candidate.visaStatus !== 'Required') {
+        return false;
+      }
+      if (!requiresVisa && candidate.visaStatus === 'Required') {
+        return false;
+      }
+    }
+    
+    // Filter by availability
+    if (availabilityFilter !== 'all' && candidate.availability !== availabilityFilter) {
+      return false;
+    }
+    
+    return true;
+  });
   
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -692,42 +809,94 @@ export default function TalentPoolSection({ isLoading }: TalentPoolSectionProps)
                   </div>
                   
                   <div>
-                    <Label className="mb-2 block">Skills</Label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {skillsFilter.map(skill => (
-                        <Badge key={skill} variant="secondary" className="flex items-center gap-1">
+                    <Label className="mb-2 block">Technical Skills</Label>
+                    <Select value={selectedSkillCategory} onValueChange={handleCategoryChange}>
+                      <SelectTrigger className="w-full h-8 text-xs">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {skillCategories.map(category => (
+                          <SelectItem key={category} value={category}>
+                            {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <div className="relative">
+                      <Input
+                        placeholder="Search skills..."
+                        value={skillInput}
+                        onChange={(e) => setSkillInput(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                      {skillInput && filteredSkills.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-40 overflow-y-auto">
+                          {filteredSkills.map((skill, index) => (
+                            <div
+                              key={index}
+                              className="px-3 py-1 text-xs hover:bg-gray-100 cursor-pointer"
+                              onClick={() => addSkill(skill)}
+                            >
+                              {skill}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {skillsFilter.map((skill, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs py-0 h-6">
                           {skill}
-                          <X 
-                            className="h-3 w-3 cursor-pointer" 
-                            onClick={() => removeSkill(skill)}
-                          />
+                          <button 
+                            onClick={() => removeSkill(skill)} 
+                            className="ml-1 text-gray-500 hover:text-gray-700"
+                          >
+                            <X size={12} />
+                          </button>
                         </Badge>
                       ))}
                     </div>
-                    <div className="relative">
-                      <Input
-                        value={skillInput}
-                        onChange={(e) => setSkillInput(e.target.value)}
-                        placeholder="Type to search skills"
-                        className="w-full"
-                      />
-                      {skillInput && filteredSkills.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-md max-h-48 overflow-y-auto">
-                          {isLoadingSkills ? (
-                            <div className="p-2 text-center text-muted-foreground">Loading skills...</div>
-                          ) : (
-                            filteredSkills.slice(0, 5).map(skill => (
-                              <div 
-                                key={skill} 
-                                className="p-2 hover:bg-muted cursor-pointer"
-                                onClick={() => addSkill(skill)}
-                              >
-                                {skill}
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      )}
+                    
+                    <div className="flex justify-between mt-2">
+                      <Button 
+                        variant={selectedSkillCategory === 'programming' ? 'default' : 'ghost'} 
+                        size="sm" 
+                        className="h-8 w-8 p-0" 
+                        onClick={() => handleCategoryChange('programming')}
+                        title="Programming Languages"
+                      >
+                        <Code size={16} />
+                      </Button>
+                      <Button 
+                        variant={selectedSkillCategory === 'frontend' ? 'default' : 'ghost'} 
+                        size="sm" 
+                        className="h-8 w-8 p-0" 
+                        onClick={() => handleCategoryChange('frontend')}
+                        title="Frontend Technologies"
+                      >
+                        <Globe size={16} />
+                      </Button>
+                      <Button 
+                        variant={selectedSkillCategory === 'backend' ? 'default' : 'ghost'} 
+                        size="sm" 
+                        className="h-8 w-8 p-0" 
+                        onClick={() => handleCategoryChange('backend')}
+                        title="Backend Technologies"
+                      >
+                        <Server size={16} />
+                      </Button>
+                      <Button 
+                        variant={selectedSkillCategory === 'database' ? 'default' : 'ghost'} 
+                        size="sm" 
+                        className="h-8 w-8 p-0" 
+                        onClick={() => handleCategoryChange('database')}
+                        title="Database Technologies"
+                      >
+                        <Database size={16} />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -762,10 +931,10 @@ export default function TalentPoolSection({ isLoading }: TalentPoolSectionProps)
               </TabsList>
               
               <TabsContent value="all" className="mt-4">
-                {candidates.length > 0 ? (
+                {filteredCandidates.length > 0 ? (
                   <ScrollArea className="h-[600px] pr-4">
                     <div className="space-y-4">
-                      {candidates.map((candidate) => (
+                      {filteredCandidates.map((candidate) => (
                         <Card key={candidate.id} className="p-4">
                           <div className="flex flex-col md:flex-row gap-4">
                             <div className="flex-shrink-0">
