@@ -1,7 +1,7 @@
 'use client'
 
-import { Navbar } from "../../components/Navbar"
-import { Footer } from "../../components/Footer"
+import { Navbar } from "../components/Navbar"
+import { Footer } from "../components/Footer"
 import Image from "next/image"
 import Link from "next/link"
 import { useLanguage } from "../contexts/LanguageContext"
@@ -11,9 +11,8 @@ export default function About() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Navbar />
       <div className="container mx-auto px-4 sm:px-6 py-4 flex-grow">
-        <Navbar />
-        
         {/* Hero Section */}
         <section className="mt-8 md:mt-16 mb-16">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -390,4 +389,4 @@ export default function About() {
       <Footer />
     </div>
   )
-} 
+}

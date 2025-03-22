@@ -6,8 +6,8 @@ import { signIn } from 'next-auth/react'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Navbar } from "../../components/Navbar"
-import { Footer } from "../../components/Footer"
+import { Navbar } from "../components/Navbar"
+import { Footer } from "../components/Footer"
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { SocialLoginButtons } from '@/components/auth/social-login-buttons'
 import { Separator } from '@/components/ui/separator'

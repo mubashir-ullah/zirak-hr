@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import { ThemeProvider } from '@/app/components/ThemeProvider'
 
 export const metadata: Metadata = {
   title: 'Talent Dashboard | Zirak HR',
@@ -12,8 +11,8 @@ export default function TalentDashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <div>
       {children}
-    </ThemeProvider>
+    </div>
   )
 }

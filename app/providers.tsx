@@ -4,6 +4,7 @@ import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from 'next-themes'
 import { LanguageProvider } from './contexts/LanguageContext'
 import { Toaster } from '@/components/ui/toaster'
+import { AuthProvider } from './contexts/AuthContext'
 
 interface ProvidersProps {
   children: React.ReactNode
@@ -18,10 +19,13 @@ export function Providers({ children }: ProvidersProps) {
         enableSystem
         disableTransitionOnChange
         storageKey="zirak-theme"
+        forcedTheme={undefined}
       >
         <LanguageProvider>
-          {children}
-          <Toaster />
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
     </SessionProvider>

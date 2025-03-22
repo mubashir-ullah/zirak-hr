@@ -3,11 +3,14 @@ export const translations = {
     nav: {
       home: "HOME",
       features: "FEATURES",
-      about: "ABOUT US"
+      about: "ABOUT US",
+      myDashboard: "Dashboard",
+      dashboard: "Dashboard"
     },
     auth: {
       register: "Register",
-      login: "Login"
+      login: "Login",
+      logout: "Logout"
     },
     hero: {
       subtitle: "ZIRAK HR: AI-POWERED HR INNOVATION APP",
@@ -80,11 +83,14 @@ export const translations = {
     nav: {
       home: "STARTSEITE",
       features: "FUNKTIONEN",
-      about: "ÜBER UNS"
+      about: "ÜBER UNS",
+      myDashboard: "Dashboard",
+      dashboard: "Dashboard"
     },
     auth: {
       register: "Registrieren",
-      login: "Anmelden"
+      login: "Anmelden",
+      logout: "Abmelden"
     },
     hero: {
       subtitle: "ZIRAK HR: KI-GESTÜTZTE HR-INNOVATIONS-APP",
@@ -157,11 +163,14 @@ export const translations = {
     nav: {
       home: "ہوم",
       features: "خصوصیات",
-      about: "ہمارے بارے میں"
+      about: "ہمارے بارے میں",
+      myDashboard: "ڈیش بورڈ",
+      dashboard: "ڈیش بورڈ"
     },
     auth: {
       register: "رجسٹر کریں",
-      login: "لاگ ان کریں"
+      login: "لاگ ان کریں",
+      logout: "لاگ آؤٹ کریں"
     },
     hero: {
       subtitle: "ذیرک ایچ آر: اے آئی پاورڈ ایچ آر انوویشن ایپ",

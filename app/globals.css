@@ -13,56 +13,76 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
 
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
+    /* Zirak HR Brand Colors - Light Theme */
+    --primary: 72 100% 50%; /* Bright lime green (#d6ff00) */
+    --primary-foreground: 0 0% 0%; /* Black text on primary */
 
-    --secondary: 0 0% 96.1%;
+    --secondary: 72 100% 86%; /* Light lime (#f0f7c2) */
     --secondary-foreground: 0 0% 9%;
 
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
 
-    --accent: 0 0% 96.1%;
+    --accent: 72 70% 50%; /* Muted lime */
     --accent-foreground: 0 0% 9%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
+    --success: 142 76% 36%; /* Green for success states */
+    --success-foreground: 0 0% 98%;
+
+    --warning: 38 92% 50%; /* Orange for warning states */
+    --warning-foreground: 0 0% 0%;
+
+    --info: 217 91% 60%; /* Blue for info states */
+    --info-foreground: 0 0% 98%;
+
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --ring: 72 100% 50%; /* Match primary for focus rings */
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 0 0% 0%;
+    --background: 0 0% 9%;
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 3.9%;
+    --card: 0 0% 12%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 3.9%;
+    --popover: 0 0% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
+    /* Zirak HR Brand Colors - Dark Theme */
+    --primary: 72 100% 40%; /* Darker lime green for dark mode */
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 0 0% 14.9%;
+    --secondary: 72 30% 20%; /* Very dark lime */
     --secondary-foreground: 0 0% 98%;
 
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
 
-    --accent: 0 0% 14.9%;
+    --accent: 72 40% 30%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
+    --success: 142 76% 26%;
+    --success-foreground: 0 0% 98%;
+
+    --warning: 38 92% 40%;
+    --warning-foreground: 0 0% 98%;
+
+    --info: 217 91% 50%;
+    --info-foreground: 0 0% 98%;
+
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --ring: 72 100% 40%;
   }
 }
 
@@ -75,3 +95,99 @@
   }
 }
 
+/* Consistent Spacing System */
+@layer utilities {
+  .spacing-xs {
+    @apply p-1;
+  }
+  .spacing-sm {
+    @apply p-2;
+  }
+  .spacing-md {
+    @apply p-4;
+  }
+  .spacing-lg {
+    @apply p-6;
+  }
+  .spacing-xl {
+    @apply p-8;
+  }
+  
+  .gap-xs {
+    @apply gap-1;
+  }
+  .gap-sm {
+    @apply gap-2;
+  }
+  .gap-md {
+    @apply gap-4;
+  }
+  .gap-lg {
+    @apply gap-6;
+  }
+  .gap-xl {
+    @apply gap-8;
+  }
+}
+
+/* Typography Scale */
+@layer base {
+  h1 {
+    @apply text-4xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+  h3 {
+    @apply text-2xl font-semibold;
+  }
+  h4 {
+    @apply text-xl font-medium;
+  }
+  h5 {
+    @apply text-lg font-medium;
+  }
+  h6 {
+    @apply text-base font-medium;
+  }
+  p {
+    @apply text-base leading-7;
+  }
+  small {
+    @apply text-sm;
+  }
+}
+
+/* Animation Utilities */
+@layer utilities {
+  .transition-standard {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .transition-fast {
+    @apply transition-all duration-150 ease-in-out;
+  }
+  
+  .transition-slow {
+    @apply transition-all duration-500 ease-in-out;
+  }
+  
+  .hover-scale {
+    @apply hover:scale-105 transition-standard;
+  }
+  
+  .hover-lift {
+    @apply hover:-translate-y-1 transition-standard;
+  }
+}
+
+/* Accessibility Helpers */
+@layer utilities {
+  .focus-visible {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+  
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+  }
+}
