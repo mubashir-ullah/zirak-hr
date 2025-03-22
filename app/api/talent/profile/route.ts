@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongoose';
+import { connectToDatabase } from '@/lib/mongodb';
 import { verifyToken } from '@/lib/auth';
 import { createOrUpdateProfile, findProfileByUserId } from '@/app/models/talentProfile';
 import mongoose from 'mongoose';

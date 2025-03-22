@@ -13,6 +13,9 @@ import {
 import ProfilePage from './talent/ProfilePage'
 import ResumePage from './talent/ResumePage'
 import SkillsPage from './talent/SkillsPage'
+import JobsPage from './talent/JobsPage'
+import MyApplications from './talent/jobs/MyApplications'
+import SettingsPage from './talent/SettingsPage'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card } from '@/components/ui/card'
@@ -151,6 +154,22 @@ export default function TalentDashboard() {
         </div>
       </header>
 
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-r from-[#d6ff00] to-[#f0f7c2] dark:from-gray-800 dark:to-gray-700 py-6 px-4 mb-6">
+        <div className="container mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+            Welcome, {profileSummary.fullName.split(' ')[0] || 'Talent'}!
+          </h2>
+          <p className="text-gray-700 dark:text-gray-300 mt-1">
+            {new Date().getHours() < 12 
+              ? 'Good morning! Ready to explore new opportunities?' 
+              : new Date().getHours() < 18 
+                ? 'Good afternoon! Hope your day is going well.' 
+                : 'Good evening! Time to discover your next career move.'}
+          </p>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
         <Tabs 
           value={activeTab} 
@@ -160,7 +179,7 @@ export default function TalentDashboard() {
           {/* Sidebar */}
           <aside className="w-full lg:w-64 lg:flex-shrink-0">
             <Card className="p-4 dark:bg-gray-800 shadow-md">
-              <div className="bg-[#d6ff00] dark:bg-gray-700 rounded-lg p-4 text-center mb-6 relative overflow-hidden">
+              <div className="bg-gradient-to-b from-[#d6ff00] to-[#f0f7c2] dark:from-gray-700 dark:to-gray-800 rounded-lg p-6 text-center mb-6 relative overflow-hidden shadow-inner">
                 {/* Background pattern for visual interest */}
                 <div className="absolute inset-0 opacity-10 dark:opacity-5">
                   <svg className="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -171,27 +190,26 @@ export default function TalentDashboard() {
                   </svg>
                 </div>
                 
-                <div className="relative w-24 h-24 lg:w-32 lg:h-32 mx-auto mb-4">
-                  <div className="absolute inset-0 rounded-full shadow-inner"></div>
-                  <Avatar className="h-full w-full border-2 border-white dark:border-gray-800 shadow-lg">
+                <div className="relative w-24 h-24 lg:w-28 lg:h-28 mx-auto mb-4">
+                  <Avatar className="h-full w-full border-4 border-white dark:border-gray-800 shadow-lg">
                     <AvatarImage 
                       src={profileSummary.profilePicture} 
                       alt={profileSummary.fullName}
                       className="object-cover"
                     />
-                    <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200">
+                    <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-xl font-bold">
                       {profileSummary.fullName ? profileSummary.fullName.substring(0, 2).toUpperCase() : 'TA'}
                     </AvatarFallback>
                   </Avatar>
                   
                   {/* Status indicator */}
-                  <span className={`absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-white dark:border-gray-800 ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                  <span className={`absolute bottom-1 right-1 h-5 w-5 rounded-full border-2 border-white dark:border-gray-800 ${isOnline ? 'bg-green-500' : 'bg-gray-400'} shadow-md`}></span>
                 </div>
                 
-                <h2 className="text-lg lg:text-xl font-bold text-black dark:text-white">{profileSummary.fullName}</h2>
-                <p className="text-sm text-black dark:text-gray-200 mb-2">{profileSummary.title}</p>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{profileSummary.fullName || 'Your Name'}</h2>
+                <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">{profileSummary.title || 'Your Title'}</p>
                 
-                <div className="flex items-center justify-center mt-2 bg-white dark:bg-gray-800 rounded-full py-1 px-3 shadow-sm mx-auto w-fit">
+                <div className="flex items-center justify-center mt-2 bg-white/80 dark:bg-gray-800/80 rounded-full py-1.5 px-4 shadow-sm mx-auto w-fit backdrop-blur-sm">
                   <Switch 
                     checked={isOnline}
                     onCheckedChange={setIsOnline}
@@ -276,16 +294,15 @@ export default function TalentDashboard() {
             </TabsContent>
             
             <TabsContent value="jobs" className="mt-0 border-none">
-              <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
-                <h2 className="text-xl lg:text-2xl font-bold mb-6">Job Matches</h2>
-                <p className="text-gray-500">Job matching functionality coming soon...</p>
-              </div>
+              <JobsPage />
             </TabsContent>
             
             <TabsContent value="applications" className="mt-0 border-none">
               <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
-                <h2 className="text-xl lg:text-2xl font-bold mb-6">My Applications</h2>
-                <p className="text-gray-500">Application tracking functionality coming soon...</p>
+                <MyApplications onJobSelect={(job) => {
+                  setActiveTab('jobs');
+                  // The JobsPage component will handle displaying the job details
+                }} />
               </div>
             </TabsContent>
             
@@ -294,10 +311,7 @@ export default function TalentDashboard() {
             </TabsContent>
             
             <TabsContent value="settings" className="mt-0 border-none">
-              <div className="bg-white dark:bg-gray-900 rounded-lg p-6">
-                <h2 className="text-xl lg:text-2xl font-bold mb-6">Account Settings</h2>
-                <p className="text-gray-500">Settings functionality coming soon...</p>
-              </div>
+              <SettingsPage />
             </TabsContent>
           </main>
         </Tabs>
