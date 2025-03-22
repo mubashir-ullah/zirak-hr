@@ -125,7 +125,7 @@ export default function About() {
                   src="/images/team/team-highlanders-logo.svg"
                   alt="Team Highlanders Logo"
                   fill
-                  className="object-contain p-2 dark:invert dark:brightness-0 dark:filter"
+                  className="object-contain p-2 brightness-0 invert filter"
                   priority
                   quality={100}
                 />
