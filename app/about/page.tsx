@@ -14,7 +14,7 @@ export default function About() {
       <Navbar />
       <div className="container mx-auto px-4 sm:px-6 py-4 flex-grow">
         {/* Hero Section */}
-        <section className="mt-8 md:mt-16 mb-16">
+        <section className="mt-4 md:mt-12 mb-16">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="text-center md:text-left space-y-8">
               <div className="space-y-6">
@@ -50,11 +50,11 @@ export default function About() {
               <div className="relative z-10 rounded-2xl overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-black via-black to-[#D6FF00] opacity-20"></div>
                 <Image
-                  src="/images/team/team-highlanders-logo.png"
+                  src="/images/team/team-highlanders-logo.svg"
                   alt="Team Highlanders"
                   width={400}
                   height={400}
-                  className="w-[200px] sm:w-[300px] md:w-[400px] h-auto object-contain drop-shadow-2xl p-2"
+                  className="w-[200px] sm:w-[300px] md:w-[400px] h-auto object-contain drop-shadow-2xl p-2 dark:invert dark:brightness-0 dark:filter"
                   priority
                 />
               </div>
@@ -122,10 +122,10 @@ export default function About() {
             <div className="flex justify-center mb-12">
               <div className="w-[200px] h-[200px] relative rounded-2xl overflow-hidden bg-gradient-to-br from-black via-black to-[#D6FF00] p-2">
                 <Image
-                  src="/images/team/team-highlanders-logo.png"
+                  src="/images/team/team-highlanders-logo.svg"
                   alt="Team Highlanders Logo"
                   fill
-                  className="object-contain p-2"
+                  className="object-contain p-2 dark:invert dark:brightness-0 dark:filter"
                   priority
                   quality={100}
                 />

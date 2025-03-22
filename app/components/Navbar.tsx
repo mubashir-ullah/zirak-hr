@@ -90,8 +90,12 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
               key={link.href}
               href={link.href}
               className={cn(
-                "font-medium text-sm transition-standard hover:text-primary hover-lift focus-visible",
-                pathname === link.href && "text-primary font-semibold"
+                "font-medium text-sm relative px-2 py-1 transition-all duration-200",
+                "after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#D6FF00] after:transition-all after:duration-300",
+                "hover:after:w-full hover:text-black dark:hover:text-white",
+                pathname === link.href 
+                  ? "text-black dark:text-white after:w-full after:bg-[#D6FF00]" 
+                  : "text-gray-600 dark:text-gray-300"
               )}
               aria-current={pathname === link.href ? "page" : undefined}
             >
@@ -111,7 +115,7 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
               <Link
                 href={dashboardLink}
                 className={cn(
-                  "bg-primary text-primary-foreground font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
+                  "bg-[#D6FF00] text-black font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
                   "rounded-full border-2 border-black dark:border-white text-xs sm:text-sm",
                   "hover-scale transition-standard focus-visible"
                 )}
@@ -123,7 +127,8 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
                 className={cn(
                   "bg-white text-black dark:bg-gray-800 dark:text-white font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
                   "rounded-full border-2 border-black dark:border-white text-xs sm:text-sm",
-                  "hover-scale transition-standard focus-visible"
+                  "hover:bg-red-500 hover:text-white hover:border-red-500 dark:hover:bg-red-500 dark:hover:text-white dark:hover:border-red-500",
+                  "transition-all duration-300 focus-visible"
                 )}
               >
                 {t('auth.logout')}
@@ -134,7 +139,7 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
               <Link
                 href="/register"
                 className={cn(
-                  "bg-primary text-primary-foreground font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
+                  "bg-[#D6FF00] text-black font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
                   "rounded-full border-2 border-black dark:border-white text-xs sm:text-sm",
                   "hover-scale transition-standard focus-visible"
                 )}
@@ -145,7 +150,7 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
               <Link
                 href="/login"
                 className={cn(
-                  "bg-primary text-primary-foreground font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
+                  "bg-[#D6FF00] text-black font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
                   "rounded-full border-2 border-black dark:border-white text-xs sm:text-sm",
                   "hover-scale transition-standard focus-visible"
                 )}

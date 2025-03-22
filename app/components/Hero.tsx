@@ -10,7 +10,7 @@ export function Hero() {
   return (
     <div className="mt-4 md:mt-[-2rem] grid md:grid-cols-2 gap-8 items-start">
       <div className="text-center md:text-left md:pl-4">
-        <p className="text-sm md:text-base font-medium text-gray-600 dark:text-gray-400 mb-2">Zirak HR: AI-Powered HR Innovation App</p>
+        <p className="text-base md:text-lg font-medium text-gray-600 dark:text-gray-400 mb-2 mt-4">Zirak HR: AI-Powered HR Innovation App</p>
         
         <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4">
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif inline-block pb-2">
@@ -29,7 +29,7 @@ export function Hero() {
         </div>
         
         <p className="mt-4 text-lg text-gray-700 dark:text-gray-300 max-w-xl leading-relaxed">
-          Unlock <span className="font-semibold">global career opportunities</span> and <span className="font-semibold">world-class tech talent</span>. We're building the bridge between Pakistan's rising tech stars and Germany's innovation-driven companies.
+          We're building the bridge between Pakistan's rising tech stars and Germany's innovation-driven companies.
         </p>
         
         <div className="mt-3 flex flex-col md:flex-row text-sm text-gray-600 dark:text-gray-400 gap-2 md:gap-4">
@@ -55,7 +55,7 @@ export function Hero() {
 
         <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
           <div className="inline-block bg-gradient-to-r from-green-600 to-[#D6FF00] px-4 py-1 rounded-full">
-            <h2 className="text-base md:text-lg font-medium text-white">Pakistan ↔ Germany</h2>
+            <h2 className="text-sm md:text-base font-medium text-white">Pakistan ↔ Germany</h2>
           </div>
         </div>
         
@@ -87,8 +87,20 @@ export function Hero() {
       </div>
 
       <div className="relative flex flex-col items-center mt-4 md:mt-0 pt-0">
-        {/* App Store Buttons moved up to align with registration buttons */}
-        <div className="flex gap-3 mb-4 md:mb-0 md:mt-8 justify-center">
+        <div className="absolute w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[320px] md:h-[320px] bg-[#d6ff00] rounded-full mt-20 sm:mt-10 md:mt-24 opacity-90"></div>
+        <div className="relative z-10 mt-4 sm:mt-6 md:mt-4">
+          <Image
+            src="/images/phone-mockup.png"
+            alt="Phone Mockup"
+            width={500}
+            height={1000}
+            className="w-[260px] sm:w-[300px] md:w-[500px] h-auto object-contain drop-shadow-2xl"
+            priority
+          />
+        </div>
+        
+        {/* App Store Buttons moved below the phone image */}
+        <div className="flex gap-3 mt-4 md:mt-6 justify-center z-10">
           <Link
             href="/"
             className="bg-black dark:bg-white text-white dark:text-black rounded-xl px-3 py-2 flex items-center justify-center w-auto border-[1.5px] border-black dark:border-white"
@@ -122,18 +134,6 @@ export function Hero() {
               <div className="font-bold text-sm">Google Play</div>
             </div>
           </Link>
-        </div>
-
-        <div className="absolute w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] md:w-[320px] md:h-[320px] bg-[#d6ff00] rounded-full mt-20 sm:mt-10 md:mt-24 opacity-90"></div>
-        <div className="relative z-10 mt-4 sm:mt-6 md:mt-4">
-          <Image
-            src="/images/phone-mockup.png"
-            alt="Phone Mockup"
-            width={500}
-            height={1000}
-            className="w-[260px] sm:w-[300px] md:w-[500px] h-auto object-contain drop-shadow-2xl"
-            priority
-          />
         </div>
       </div>
     </div>

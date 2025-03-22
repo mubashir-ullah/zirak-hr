@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { connectToDatabase } from './mongodb';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -28,21 +27,19 @@ export async function connectToMongoose() {
       bufferCommands: false,
     };
 
-    // First, make sure the MongoDB connection is established
-    await connectToDatabase();
-
-    // Then connect Mongoose to the same MongoDB instance
+    console.log('Connecting to MongoDB with Mongoose...');
     cached.mongoose.promise = mongoose.connect(MONGODB_URI as string, opts);
   }
   
   try {
     cached.mongoose.conn = await cached.mongoose.promise;
+    console.log('Mongoose connection successful');
+    return cached.mongoose.conn;
   } catch (e) {
+    console.error('Mongoose connection error:', e);
     cached.mongoose.promise = null;
     throw e;
   }
-
-  return cached.mongoose.conn;
 }
 
 export default connectToMongoose;
