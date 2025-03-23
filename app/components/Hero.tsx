@@ -55,7 +55,7 @@ export function Hero() {
 
         <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
           <div className="inline-block bg-gradient-to-r from-green-600 to-[#D6FF00] px-4 py-1 rounded-full">
-            <h2 className="text-sm md:text-base font-medium text-white">Pakistan ↔ Germany</h2>
+            <h2 className="text-xs md:text-sm font-medium text-white">Pakistan ↔ Germany</h2>
           </div>
         </div>
         
