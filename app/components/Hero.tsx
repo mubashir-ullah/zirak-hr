@@ -100,40 +100,41 @@ export function Hero() {
         </div>
         
         {/* App Store Buttons moved below the phone image */}
-        <div className="flex gap-3 mt-4 md:mt-6 justify-center z-10">
-          <Link
-            href="/"
-            className="bg-black dark:bg-white text-white dark:text-black rounded-xl px-3 py-2 flex items-center justify-center w-auto border-[1.5px] border-black dark:border-white"
-          >
-            <Image
-              src="/images/apple-logo.svg"
-              alt="Apple Logo"
-              width={20}
-              height={20}
-              className="mr-2 md:w-[24px] md:h-[24px] invert dark:invert-0"
-            />
-            <div>
-              <div className="text-xs">{t('hero.appStore.text1')}</div>
-              <div className="font-bold text-sm">{t('hero.appStore.text2')}</div>
-            </div>
-          </Link>
+        <div className="flex flex-col items-center mt-4 md:mt-6 z-10">
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Coming soon on</div>
+          <div className="flex gap-3 justify-center">
+            <Link
+              href="/"
+              className="bg-black dark:bg-white text-white dark:text-black rounded-xl px-3 py-2 flex items-center justify-center w-auto border-[1.5px] border-black dark:border-white"
+            >
+              <Image
+                src="/images/apple-logo.svg"
+                alt="Apple Logo"
+                width={20}
+                height={20}
+                className="mr-2 md:w-[24px] md:h-[24px] invert dark:invert-0"
+              />
+              <div>
+                <div className="font-bold text-sm">App Store</div>
+              </div>
+            </Link>
 
-          <Link
-            href="/"
-            className="bg-black dark:bg-white text-white dark:text-black rounded-xl px-3 py-2 flex items-center justify-center w-auto border-[1.5px] border-black dark:border-white"
-          >
-            <Image
-              src="/images/google-play.svg"
-              alt="Google Play Logo"
-              width={20}
-              height={20}
-              className="mr-2 md:w-[24px] md:h-[24px] invert dark:invert-0"
-            />
-            <div>
-              <div className="text-xs">Download on</div>
-              <div className="font-bold text-sm">Google Play</div>
-            </div>
-          </Link>
+            <Link
+              href="/"
+              className="bg-black dark:bg-white text-white dark:text-black rounded-xl px-3 py-2 flex items-center justify-center w-auto border-[1.5px] border-black dark:border-white"
+            >
+              <Image
+                src="/images/google-play.svg"
+                alt="Google Play Logo"
+                width={20}
+                height={20}
+                className="mr-2 md:w-[24px] md:h-[24px] invert dark:invert-0"
+              />
+              <div>
+                <div className="font-bold text-sm">Google Play</div>
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
