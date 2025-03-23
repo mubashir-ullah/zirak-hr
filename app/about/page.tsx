@@ -5,6 +5,10 @@ import { Footer } from "../components/Footer"
 import Image from "next/image"
 import Link from "next/link"
 import { useLanguage } from "../contexts/LanguageContext"
+import { OrganizationJsonLd, PersonJsonLd, FAQJsonLd } from "../components/JsonLd"
+
+// Note: Metadata must be in a separate file for client components
+// The metadata is defined in about/metadata.ts
 
 export default function About() {
   const { t } = useLanguage()
@@ -387,6 +391,71 @@ export default function About() {
         </section>
       </div>
       <Footer />
+      
+      {/* Structured Data */}
+      <OrganizationJsonLd
+        name="Zirak HR"
+        url="https://zirak-hr.vercel.app"
+        logo="https://zirak-hr.vercel.app/images/logo.png"
+        sameAs={[
+          "https://twitter.com/zirakhr",
+          "https://www.linkedin.com/company/zirakhr",
+          "https://github.com/zirakhr"
+        ]}
+      />
+      
+      {/* Team Members Structured Data */}
+      <PersonJsonLd
+        name="Mansoor Khan"
+        jobTitle="Team Member"
+        image="https://zirak-hr.vercel.app/images/team/mansoor.png"
+        sameAs={[
+          "https://www.linkedin.com/in/mansoor-khan-882019245/",
+          "https://github.com/Mansoorkhan799"
+        ]}
+      />
+      
+      <PersonJsonLd
+        name="Mubashir Ullah"
+        jobTitle="Team Lead"
+        image="https://zirak-hr.vercel.app/images/team/mubashir.png"
+        sameAs={[
+          "https://www.linkedin.com/in/mubashir-ullah/",
+          "https://github.com/mubashir-ullah"
+        ]}
+      />
+      
+      <PersonJsonLd
+        name="Muhammad Hamza Sirang"
+        jobTitle="Team Member"
+        image="https://zirak-hr.vercel.app/images/team/hamza.png"
+        sameAs={[
+          "https://www.linkedin.com/in/muhammad-hamza-sirang/",
+          "https://github.com/hamzasirang"
+        ]}
+      />
+      
+      {/* FAQ Structured Data */}
+      <FAQJsonLd
+        questions={[
+          {
+            question: "What is Zirak HR?",
+            answer: "Zirak HR is an AI-powered HR innovation app that bridges tech talent gaps between Pakistan and Germany, offering AI-powered matching, skill assessment, and bias-free recruitment solutions."
+          },
+          {
+            question: "How does Zirak HR match talent with employers?",
+            answer: "Zirak HR uses advanced AI algorithms to analyze candidate skills, experience, and preferences to match them with suitable job opportunities from German employers looking for Pakistani tech talent."
+          },
+          {
+            question: "Who created Zirak HR?",
+            answer: "Zirak HR was created by Team Highlanders, a team of three developers from the highlands of Pakistan - two from Chitral and one from Gilgit."
+          },
+          {
+            question: "What makes Zirak HR different from other HR platforms?",
+            answer: "Zirak HR stands out with its focus on connecting Pakistani tech talent with German companies, AI-powered matching algorithms, bias-free recruitment processes, and eco-friendly practices through green coding."
+          }
+        ]}
+      />
     </div>
   )
 }

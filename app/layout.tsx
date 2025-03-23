@@ -6,9 +6,77 @@ import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
+// Define default metadata that will be used as fallback
+// Page-specific metadata will override these values when defined
 export const metadata: Metadata = {
-  title: "Zirak HR",
-  description: "AI-Powered HR Innovation App",
+  title: {
+    template: '%s | Zirak HR',
+    default: 'Zirak HR | AI-Powered HR Innovation App',
+  },
+  description: "Zirak HR bridges tech talent gaps between Pakistan and Germany with AI-powered matching, skill assessment, and bias-free recruitment solutions.",
+  keywords: "HR technology, AI recruitment, talent matching, Pakistan tech talent, German employers, job matching, skill assessment",
+  authors: [{ name: "Team Highlanders" }],
+  creator: "Team Highlanders",
+  publisher: "Zirak HR",
+  icons: {
+    icon: [
+      { url: '/favicon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon/favicon.png', type: 'image/png' }
+    ],
+    shortcut: '/favicon/favicon.ico',
+    apple: '/favicon/favicon.png',
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://zirak-hr.vercel.app/",
+    title: {
+      template: '%s | Zirak HR',
+      default: 'Zirak HR | AI-Powered HR Innovation App',
+    },
+    description: "Connecting Pakistani tech talent with German innovation-driven companies through AI-powered matching and bias-free recruitment.",
+    siteName: "Zirak HR",
+    images: [
+      {
+        url: "/images/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Zirak HR - Bridging Tech Talent Gaps",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: {
+      template: '%s | Zirak HR',
+      default: 'Zirak HR | AI-Powered HR Innovation App',
+    },
+    description: "Connecting Pakistani tech talent with German innovation-driven companies through AI-powered matching and bias-free recruitment.",
+    images: ["/images/og-image.jpg"],
+    creator: "@zirakhr",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: "https://zirak-hr.vercel.app/",
+    languages: {
+      'en-US': "https://zirak-hr.vercel.app/",
+      'de-DE': "https://zirak-hr.vercel.app/de",
+    },
+  },
+  verification: {
+    google: "google-site-verification-code",
+  },
+  metadataBase: new URL("https://zirak-hr.vercel.app"),
 }
 
 export default function RootLayout({
