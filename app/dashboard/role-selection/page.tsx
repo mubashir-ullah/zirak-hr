@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
+import { useTheme } from 'next-themes';
 
 export default function RoleSelectionPage() {
   const router = useRouter();
   const { data: session, update, status } = useSession();
+  const { theme } = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -73,7 +75,7 @@ export default function RoleSelectionPage() {
               alt="Zirak HR Logo"
               width={80}
               height={80}
-              className="h-20 w-auto"
+              className={`h-20 w-auto ${theme === 'dark' ? 'filter brightness-[1.7] hue-rotate-[85deg] saturate-[1.5]' : ''}`}
             />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">

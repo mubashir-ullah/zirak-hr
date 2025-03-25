@@ -77,7 +77,7 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
               alt="ZIRAK HR Logo"
               width={100}
               height={100}
-              className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] dark:invert transition-standard"
+              className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] dark:filter dark:brightness-0 dark:[filter:invert(83%)_sepia(82%)_saturate(473%)_hue-rotate(24deg)_brightness(106%)_contrast(104%)] transition-standard"
               priority
             />
           </Link>

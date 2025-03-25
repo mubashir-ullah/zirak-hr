@@ -179,7 +179,7 @@ export default function HRDashboard() {
               alt="Zirak HR" 
               width={100} 
               height={32} 
-              className="dark:invert"
+              className="dark:filter dark:brightness-[1.7] dark:hue-rotate-[85deg] dark:saturate-[1.5]"
             />
           </div>
           <h1 className="text-xl lg:text-2xl font-bold absolute left-1/2 transform -translate-x-1/2">HR Dashboard</h1>
