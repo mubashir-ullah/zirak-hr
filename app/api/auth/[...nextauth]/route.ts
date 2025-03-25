@@ -4,10 +4,11 @@ import GoogleProvider from 'next-auth/providers/google'
 import GitHubProvider from 'next-auth/providers/github'
 import LinkedInProvider from 'next-auth/providers/linkedin'
 import AppleProvider from 'next-auth/providers/apple'
-import clientPromise from '@/lib/mongodb'
-import { User, IUser } from '@/models/User'
 import bcrypt from 'bcryptjs'
 import { NextAuthOptions } from 'next-auth'
+import supabase from '@/lib/supabase'
+import { findUserByEmail, createUser, updateUserRole } from '@/lib/supabaseDb'
+import { v4 as uuidv4 } from 'uuid';
 
 // Define types for our application
 type Role = 'talent' | 'hiring_manager' | 'admin';
@@ -222,38 +223,33 @@ export const authOptions: NextAuthOptions = {
           // In production, you should use the database
           const email = credentials.email.toLowerCase().trim();
           
-          // Try to connect to MongoDB first
+          // Try to connect to Supabase first
           let user;
           try {
-            const client = await clientPromise;
-            if (client) {
-              const db = client.db('zirakhr');
-              user = await User.findByEmail(db, email);
-              
-              if (user) {
-                // Verify password
-                const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-                if (!isPasswordValid) {
-                  throw new Error('Invalid password');
-                }
-                
-                // Return user in the format expected by NextAuth
-                return {
-                  id: user._id?.toString() || '',
-                  name: user.name,
-                  email: user.email,
-                  role: user.role,
-                  needsRoleSelection: user.needsRoleSelection || false,
-                  image: null,
-                };
+            user = await findUserByEmail(email);
+            if (user) {
+              // Verify password
+              const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+              if (!isPasswordValid) {
+                throw new Error('Invalid password');
               }
+              
+              // Return user in the format expected by NextAuth
+              return {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                needsRoleSelection: user.needsRoleSelection || false,
+                image: null,
+              };
             }
           } catch (error) {
             console.error('Database error in authorize:', error);
             // Fall back to mock users if database connection fails
           }
           
-          // If no user found in database or if database connection failed, try mock users
+          // If no user found in database or if database connection fails, try mock users
           const mockUser = mockUsers.find(u => u.email === email);
           if (!mockUser || !mockUser.password) {
             throw new Error('No user found with this email');
@@ -320,67 +316,66 @@ export const authOptions: NextAuthOptions = {
       }
 
       try {
-        // Try to connect to MongoDB first
+        // Try to connect to Supabase first
         try {
-          const client = await clientPromise;
-          if (client) {
-            const db = client.db('zirakhr');
+          let dbUser = await findUserByEmail(email);
+          if (dbUser) {
+            // Update existing user with latest profile info
+            user.id = dbUser.id;
+            (user as any).role = dbUser.role;
             
-            // Check if user exists in database
-            let dbUser = await User.findByEmail(db, email);
+            // If user has no role set or needsRoleSelection is true, they need to select a role
+            (user as any).needsRoleSelection = dbUser.needsRoleSelection === true || !dbUser.role;
             
-            if (dbUser) {
-              // Update existing user with latest profile info
-              user.id = dbUser._id?.toString() || user.id;
-              (user as any).role = dbUser.role;
-              
-              // If user has no role set or needsRoleSelection is true, they need to select a role
-              (user as any).needsRoleSelection = dbUser.needsRoleSelection === true || !dbUser.role;
-              
-              console.log('Existing user login:', {
-                id: user.id,
-                role: (user as any).role,
-                needsRoleSelection: (user as any).needsRoleSelection
-              });
-            } else {
-              // For new social login users, we'll set needsRoleSelection flag
-              // and redirect them to role selection page via middleware
-              (user as any).needsRoleSelection = true;
-              
-              // Generate a random password for social login users
-              const randomPassword = Math.random().toString(36).slice(2, 10);
-              const hashedPassword = await bcrypt.hash(randomPassword, 10);
-              
-              // Create a new user in the database with temporary role
-              // The actual role will be set when they complete the role selection
-              const newUser = await User.create(db, {
-                name: user.name || email.split('@')[0],
-                email: email,
-                password: hashedPassword,
-                role: 'talent', // Default role, will be updated after selection
-                socialProvider: account?.provider,
-                needsRoleSelection: true
-              });
-              
+            console.log('Existing user login:', {
+              id: user.id,
+              role: (user as any).role,
+              needsRoleSelection: (user as any).needsRoleSelection
+            });
+          } else {
+            // For new social login users, we'll set needsRoleSelection flag
+            // and redirect them to role selection page via middleware
+            (user as any).needsRoleSelection = true;
+            
+            // Generate a random password for social login users
+            const randomPassword = Math.random().toString(36).slice(2, 10);
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+            
+            // Create a new user in the database with temporary role
+            // The actual role will be set when they complete the role selection
+            const newUser = await createUser({
+              name: user.name || email.split('@')[0],
+              email: email,
+              password: hashedPassword,
+              role: 'talent', // Default role, will be updated after selection
+              social_provider: account?.provider,
+              needs_role_selection: true
+            });
+            
+            if (newUser) {
               console.log('Created new social login user:', {
-                id: newUser._id,
+                id: newUser.id,
                 role: 'talent',
                 needsRoleSelection: true
               });
               
-              user.id = newUser._id?.toString() || user.id;
+              user.id = newUser.id || '';
               (user as any).role = 'talent'; // Temporary role
+            } else {
+              console.error('Failed to create new user in database');
+              // Still allow the user to sign in, but with limited functionality
+              user.id = uuidv4();
+              (user as any).role = 'talent';
+              (user as any).needsRoleSelection = true;
             }
-            
-            return true;
           }
         } catch (error) {
           console.error('Database error in signIn:', error);
           // Fall back to mock data if database connection fails
         }
         
-        // For development purposes, we'll use mock data instead of MongoDB
-        // to avoid connection errors when MongoDB isn't set up
+        // For development purposes, we'll use mock data instead of Supabase
+        // to avoid connection errors when Supabase isn't set up
         
         // Check if user exists in mock data
         const existingMockUser = mockUsers.find(u => u.email === email);

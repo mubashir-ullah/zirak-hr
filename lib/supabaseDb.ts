@@ -100,6 +100,41 @@ export const createUser = async (userData: Omit<UserData, 'id' | 'created_at' | 
   return data;
 };
 
+export const getUserByEmail = async (email: string): Promise<UserData | null> => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email.toLowerCase())
+    .single();
+
+  if (error) {
+    console.error('Error finding user by email:', error);
+    return null;
+  }
+
+  return data;
+};
+
+export const updateUserRole = async (userId: string, role: Role): Promise<UserData | null> => {
+  const { data, error } = await supabase
+    .from('users')
+    .update({ 
+      role, 
+      needs_role_selection: false,
+      updated_at: new Date().toISOString() 
+    })
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating user role:', error);
+    return null;
+  }
+
+  return data;
+};
+
 export const findUserByEmail = async (email: string): Promise<UserData | null> => {
   const { data, error } = await supabase
     .from('users')
