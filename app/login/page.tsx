@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { signIn } from 'next-auth/react'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -23,6 +22,7 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
 
   useEffect(() => {
     if (searchParams.get('registered')) {
@@ -64,16 +64,25 @@ export default function LoginPage() {
     const password = formData.get('password') as string
 
     try {
-      const result = await signIn('credentials', {
-        email: email.trim().toLowerCase(),
-        password: password,
-        redirect: false,
-      })
+      // Use our custom login API instead of NextAuth
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password: password,
+          rememberMe: rememberMe,
+        }),
+      });
 
-      if (result?.error) {
-        setError(result.error)
-        setLoading(false)
-        return
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Login failed');
+        setLoading(false);
+        return;
       }
 
       setSuccessMessage('Login successful! Redirecting...')
@@ -167,6 +176,31 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 text-[#d6ff00] focus:ring-[#d6ff00] border-gray-300 rounded"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                  {t('Remember me')}
+                </label>
+              </div>
+              
+              <div className="text-sm">
+                <Link
+                  href="/forgot-password"
+                  className="text-blue-600 hover:text-blue-500"
+                >
+                  {t('Forgot your password?')}
+                </Link>
+              </div>
+            </div>
+
             <div>
               <button
                 type="submit"
@@ -175,15 +209,6 @@ export default function LoginPage() {
               >
                 {loading ? t('Signing in...') : redirecting ? t('Redirecting...') : t('Sign in')}
               </button>
-            </div>
-
-            <div className="text-center text-sm">
-              <Link
-                href="/forgot-password"
-                className="text-blue-600 hover:text-blue-500"
-              >
-                {t('Forgot your password?')}
-              </Link>
             </div>
 
             <div className="mt-6 text-center">

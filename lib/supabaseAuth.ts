@@ -187,18 +187,95 @@ export const setUserRole = async (
   role: 'talent' | 'hiring_manager' | 'admin'
 ): Promise<{ user: UserData | null; error: string | null }> => {
   try {
-    const userData = await updateUser(userId, {
-      role,
-      needs_role_selection: false,
+    const updatedUser = await updateUser(userId, { 
+      role, 
+      needs_role_selection: false 
     });
     
-    if (!userData) {
+    if (!updatedUser) {
       return { user: null, error: 'Failed to update user role' };
     }
     
-    return { user: userData, error: null };
+    return { user: updatedUser, error: null };
   } catch (error) {
     console.error('Error setting user role:', error);
     return { user: null, error: 'An unexpected error occurred' };
+  }
+};
+
+// Link a social provider to an existing account
+export const linkSocialProvider = async (
+  provider: 'google' | 'github' | 'linkedin' | 'apple'
+): Promise<{ url: string | null; error: string | null }> => {
+  try {
+    // Get the current session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData.session) {
+      return { url: null, error: 'You must be logged in to link accounts' };
+    }
+    
+    // Generate the OAuth URL with the current user's session
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/link-callback`,
+        scopes: 'email profile',
+      },
+    });
+
+    if (error) {
+      return { url: null, error: error.message };
+    }
+
+    return { url: data.url, error: null };
+  } catch (error) {
+    console.error(`Error linking ${provider}:`, error);
+    return { url: null, error: 'An unexpected error occurred' };
+  }
+};
+
+// Handle account linking callback
+export const handleLinkCallback = async (): Promise<{ success: boolean; error: string | null }> => {
+  try {
+    // Get the current session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData.session) {
+      return { success: false, error: 'Authentication session not found' };
+    }
+    
+    const user = sessionData.session.user;
+    
+    // Get the user's identities (linked accounts)
+    const { data } = await supabase.auth.admin.getUserById(user.id);
+    
+    if (!data || !data.user || !data.user.identities || data.user.identities.length === 0) {
+      return { success: false, error: 'No identities found for user' };
+    }
+    
+    // Get the user from our database
+    const dbUser = await findUserByEmail(user.email!.toLowerCase());
+    
+    if (!dbUser) {
+      return { success: false, error: 'User not found in database' };
+    }
+    
+    // Extract the provider names from identities
+    const linkedProviders = data.user.identities.map((identity: { provider: string }) => identity.provider);
+    
+    // Update the user's linked accounts in our database
+    const updatedUser = await updateUser(dbUser.id!, {
+      linked_accounts: linkedProviders
+    });
+    
+    if (!updatedUser) {
+      return { success: false, error: 'Failed to update user' };
+    }
+    
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error handling link callback:', error);
+    return { success: false, error: 'An unexpected error occurred' };
   }
 };

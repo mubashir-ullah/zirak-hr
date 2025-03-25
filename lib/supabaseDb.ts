@@ -15,6 +15,7 @@ export interface UserData {
   social_provider?: string;
   needs_role_selection?: boolean;
   resume_url?: string;
+  linked_accounts?: string[];
   created_at?: string;
   updated_at?: string;
 }

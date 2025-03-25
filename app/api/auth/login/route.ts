@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'zirak-hr-secret-key'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { email, password } = body
+    const { email, password, rememberMe } = body
 
     if (!email || !password) {
       return NextResponse.json(
@@ -27,7 +27,9 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create JWT token
+    // Create JWT token with expiration based on rememberMe
+    const expiresIn = rememberMe ? '30d' : '1d'
+    
     const token = sign(
       { 
         userId: user.id,
@@ -35,31 +37,31 @@ export async function POST(request: Request) {
         email: user.email
       },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn }
     )
 
-    // Set cookie using the synchronous cookies API
-    cookies().set({
+    // Create a response object
+    const response = NextResponse.json({
+      message: 'Login successful',
+      user: { ...user, password: undefined }
+    })
+
+    // Set cookie on the response object
+    response.cookies.set({
       name: 'auth-token',
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60, // 30 days if remember me, else 1 day
       path: '/'
     })
 
-    // Return user data (excluding password)
-    const { password: _, ...userData } = user
-
-    return NextResponse.json({
-      user: userData,
-      message: 'Login successful'
-    })
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
-      { error: 'An error occurred during login' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
