@@ -1,6 +1,6 @@
-import { withAuth } from 'next-auth/middleware'
-import { NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { NextResponse, NextRequest } from 'next/server'
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { findUserById } from './lib/supabaseDb'
 
 // Define protected routes by role
 const talentRoutes = [
@@ -32,127 +32,101 @@ const adminRoutes = [
   '/dashboard/admin/settings',
 ]
 
-export default withAuth(
-  async function middleware(req) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
+export async function middleware(req: NextRequest) {
+  try {
     const { pathname } = req.nextUrl
     
     console.log('Middleware - Path:', pathname)
-    console.log('Middleware - Token:', token ? JSON.stringify({
-      id: token.userId,
-      role: token.role,
-      needsRoleSelection: token.needsRoleSelection
-    }) : 'No token')
+    
+    // Create a Supabase client for the middleware
+    const res = NextResponse.next()
+    const supabase = createMiddlewareClient({ req, res })
+    
+    // Get the session from Supabase
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    console.log('Middleware - Session:', session ? 'Session exists' : 'No session')
     
     // Protect dashboard routes
     if (pathname.startsWith('/dashboard')) {
       // If user is not authenticated, redirect to login
-      if (!token) {
-        console.log('Middleware - No token, redirecting to login')
+      if (!session) {
+        console.log('Middleware - No session, redirecting to login')
         return NextResponse.redirect(new URL('/login', req.url))
       }
       
-      // Check if user needs to select a role
-      if (token.needsRoleSelection === true) {
-        // Allow access to role selection page
-        if (pathname === '/dashboard/role-selection') {
-          console.log('Middleware - User needs role selection, already on selection page')
-          return NextResponse.next()
-        }
-        
-        // Redirect to role selection page for all other dashboard routes
-        console.log('Middleware - User needs role selection, redirecting to selection page')
+      // Get the user data from our database
+      const user = await findUserById(session.user.id)
+      
+      if (!user) {
+        console.log('Middleware - User not found in database')
+        return NextResponse.redirect(new URL('/login', req.url))
+      }
+      
+      console.log('Middleware - User:', {
+        id: user.id,
+        role: user.role,
+        needsRoleSelection: user.needs_role_selection
+      })
+      
+      // If user needs to select a role, redirect to role selection page
+      // unless they're already on that page
+      if (user.needs_role_selection && pathname !== '/dashboard/role-selection') {
+        console.log('Middleware - User needs role selection, redirecting')
         return NextResponse.redirect(new URL('/dashboard/role-selection', req.url))
       }
       
-      // Redirect based on user role for the main dashboard route
-      if (pathname === '/dashboard' || pathname === '/dashboard/') {
-        if (token.role === 'talent') {
-          console.log('Middleware - Redirecting talent to talent dashboard')
+      // If user is on role selection page but doesn't need to select a role,
+      // redirect to appropriate dashboard
+      if (pathname === '/dashboard/role-selection' && !user.needs_role_selection) {
+        console.log('Middleware - User already has role, redirecting to dashboard')
+        
+        if (user.role === 'talent') {
           return NextResponse.redirect(new URL('/dashboard/talent', req.url))
-        } else if (token.role === 'hiring_manager') {
-          console.log('Middleware - Redirecting hiring manager to hiring manager dashboard')
+        } else if (user.role === 'hiring_manager') {
           return NextResponse.redirect(new URL('/dashboard/hiring-manager', req.url))
-        } else if (token.role === 'admin') {
-          console.log('Middleware - Redirecting admin to admin dashboard')
+        } else if (user.role === 'admin') {
           return NextResponse.redirect(new URL('/dashboard/admin', req.url))
+        }
+      }
+      
+      // Check if user is trying to access a role-specific route they don't have access to
+      if (user.role === 'talent' && hiringManagerRoutes.some(route => pathname.startsWith(route))) {
+        console.log('Middleware - Talent trying to access hiring manager route')
+        return NextResponse.redirect(new URL('/dashboard/talent', req.url))
+      }
+      
+      if (user.role === 'hiring_manager' && talentRoutes.some(route => pathname.startsWith(route))) {
+        console.log('Middleware - Hiring manager trying to access talent route')
+        return NextResponse.redirect(new URL('/dashboard/hiring-manager', req.url))
+      }
+      
+      // Only admins can access admin routes
+      if (user.role !== 'admin' && adminRoutes.some(route => pathname.startsWith(route))) {
+        console.log('Middleware - Non-admin trying to access admin route')
+        
+        if (user.role === 'talent') {
+          return NextResponse.redirect(new URL('/dashboard/talent', req.url))
         } else {
-          console.log('Middleware - No role defined, redirecting to role selection')
-          return NextResponse.redirect(new URL('/dashboard/role-selection', req.url))
-        }
-      }
-      
-      // Role-based route protection
-      const userRole = token.role as string
-      console.log('Middleware - User role:', userRole)
-      
-      // Prevent talent from accessing hiring manager and admin routes
-      if (userRole === 'talent') {
-        const isHiringManagerRoute = hiringManagerRoutes.some(route => 
-          pathname === route || pathname.startsWith(`${route}/`)
-        )
-        
-        const isAdminRoute = adminRoutes.some(route => 
-          pathname === route || pathname.startsWith(`${route}/`)
-        )
-        
-        if (isHiringManagerRoute || isAdminRoute) {
-          console.log('Middleware - Talent trying to access restricted route, redirecting')
-          return NextResponse.redirect(new URL('/dashboard/talent', req.url))
-        }
-      }
-      
-      // Prevent hiring manager from accessing talent and admin routes
-      if (userRole === 'hiring_manager') {
-        const isTalentRoute = talentRoutes.some(route => 
-          pathname === route || pathname.startsWith(`${route}/`)
-        )
-        
-        const isAdminRoute = adminRoutes.some(route => 
-          pathname === route || pathname.startsWith(`${route}/`)
-        )
-        
-        if (isTalentRoute || isAdminRoute) {
-          console.log('Middleware - Hiring manager trying to access restricted route, redirecting')
           return NextResponse.redirect(new URL('/dashboard/hiring-manager', req.url))
-        }
-      }
-      
-      // Prevent admin from accessing talent and hiring manager routes
-      if (userRole === 'admin') {
-        const isTalentRoute = talentRoutes.some(route => 
-          pathname === route || pathname.startsWith(`${route}/`)
-        )
-        
-        const isHiringManagerRoute = hiringManagerRoutes.some(route => 
-          pathname === route || pathname.startsWith(`${route}/`)
-        )
-        
-        if (isTalentRoute || isHiringManagerRoute) {
-          console.log('Middleware - Admin trying to access restricted route, redirecting')
-          return NextResponse.redirect(new URL('/dashboard/admin', req.url))
         }
       }
     }
     
-    console.log('Middleware - Allowing access to:', pathname)
-    return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => {
-        console.log('Middleware - Authorized callback, token exists:', !!token)
-        return !!token
-      }
-    },
+    // Allow the request to continue
+    return res
+  } catch (error) {
+    console.error('Middleware error:', error)
+    
+    // In case of error, redirect to login
+    return NextResponse.redirect(new URL('/login', req.url))
   }
-)
+}
 
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/api/auth/:path*',
-    '/api/talent/:path*',
-    '/api/hiring-manager/:path*',
+    '/api/dashboard/:path*',
+    '/api/protected/:path*',
   ],
 }

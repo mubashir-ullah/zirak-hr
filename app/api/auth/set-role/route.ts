@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import clientPromise from '@/lib/mongodb';
-import { User } from '@/models/User';
-import { ObjectId } from 'mongodb';
+import { setUserRole } from '@/lib/supabaseAuth';
+import supabase from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
     // Get the current session to verify the user is authenticated
-    const session = await getServerSession();
+    const { data: { session } } = await supabase.auth.getSession();
     
     if (!session || !session.user) {
       return NextResponse.json(
@@ -20,7 +18,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { role, userId } = body;
     
-    console.log('Set role request:', { role, userId, session: session.user });
+    console.log('Set role request:', { role, userId, sessionUser: session.user.email });
     
     // Validate the role
     if (role !== 'talent' && role !== 'hiring_manager') {
@@ -38,54 +36,40 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    try {
-      // Connect to the database
-      const client = await clientPromise;
-      if (!client) {
-        throw new Error('Failed to connect to database');
-      }
-      const db = client.db('zirakhr');
-      
-      // Update the user's role in the database
-      const result = await db.collection('users').updateOne(
-        { _id: new ObjectId(userId) },
-        { 
-          $set: { 
-            role: role,
-            needsRoleSelection: false,
-            updatedAt: new Date()
-          } 
-        }
-      );
-      
-      if (result.matchedCount === 0) {
-        return NextResponse.json(
-          { message: 'User not found' },
-          { status: 404 }
-        );
-      }
-      
-      console.log(`Updated role for user ${userId} to ${role}`);
-      
+    // Update the user's role using Supabase
+    const { user, error } = await setUserRole(userId, role);
+    
+    if (error) {
+      console.error('Error setting user role:', error);
       return NextResponse.json(
-        { message: 'Role updated successfully', role },
-        { status: 200 }
-      );
-    } catch (dbError) {
-      console.error('Database error in set-role:', dbError);
-      
-      // For development purposes, we'll simulate success if database connection fails
-      console.log(`[MOCK] Updated role for user ${userId} to ${role}`);
-      
-      return NextResponse.json(
-        { message: 'Role updated successfully (mock)', role },
-        { status: 200 }
+        { message: 'Failed to update user role', error },
+        { status: 500 }
       );
     }
+    
+    if (!user) {
+      return NextResponse.json(
+        { message: 'User not found' },
+        { status: 404 }
+      );
+    }
+    
+    // Return success response with updated user
+    return NextResponse.json({
+      message: 'Role updated successfully',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        needsRoleSelection: user.needs_role_selection
+      }
+    });
+    
   } catch (error) {
     console.error('Error in set-role API:', error);
     return NextResponse.json(
-      { message: 'An error occurred while setting the role' },
+      { message: 'An error occurred while setting the role', error: String(error) },
       { status: 500 }
     );
   }

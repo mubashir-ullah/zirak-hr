@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
-import { connectToDatabase } from '@/lib/mongodb'
-import { User, IUser } from '@/app/models/user'
-import bcrypt from 'bcryptjs'
+import { signInWithEmail } from '@/lib/supabaseAuth'
 import { cookies } from 'next/headers'
 import { sign } from 'jsonwebtoken'
 
@@ -19,23 +17,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // Connect to MongoDB through mongoose
-    await connectToDatabase()
-
-    // Find user
-    const user = await User.findByEmail(email)
+    // Authenticate with Supabase
+    const { user, error } = await signInWithEmail(email, password)
     
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      )
-    }
-
-    // Verify password
-    const isValidPassword = await user.comparePassword(password)
-    
-    if (!isValidPassword) {
+    if (error || !user) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
@@ -45,7 +30,7 @@ export async function POST(request: Request) {
     // Create JWT token
     const token = sign(
       { 
-        userId: user._id,
+        userId: user.id,
         role: user.role,
         email: user.email
       },
@@ -53,31 +38,28 @@ export async function POST(request: Request) {
       { expiresIn: '7d' }
     )
 
-    // Set cookie
-    cookies().set('auth-token', token, {
+    // Set cookie using the synchronous cookies API
+    cookies().set({
+      name: 'auth-token',
+      value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 // 7 days
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/'
     })
 
-    // Update last login time
-    user.lastLogin = new Date()
-    await user.save()
-
-    // Remove password from response
-    const userResponse = user.toObject()
-    delete userResponse.password
+    // Return user data (excluding password)
+    const { password: _, ...userData } = user
 
     return NextResponse.json({
-      message: 'Login successful',
-      user: userResponse,
-      token
+      user: userData,
+      message: 'Login successful'
     })
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'An error occurred during login' },
       { status: 500 }
     )
   }

@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
-import clientPromise from '@/lib/mongodb'
-import { User } from '@/models/User'
-import bcrypt from 'bcryptjs'
+import { signUpWithEmail } from '@/lib/supabaseAuth'
 
 export async function POST(request: Request) {
   try {
@@ -16,74 +14,51 @@ export async function POST(request: Request) {
       )
     }
 
-    // Connect to MongoDB
-    console.log('Connecting to MongoDB...')
-    let client
-    try {
-      client = await clientPromise
-      if (!client) {
-        throw new Error('MongoDB client is null')
-      }
-    } catch (error) {
-      console.error('Failed to connect to MongoDB:', error)
-      return NextResponse.json(
-        { error: 'Database connection failed. Please try again later.' },
-        { status: 500 }
-      )
-    }
+    // Register user with Supabase
+    console.log('Registering user with Supabase...')
+    const { user, error } = await signUpWithEmail(
+      email,
+      password,
+      name,
+      'talent', // Default role
+      true // Needs role selection
+    )
 
-    const db = client.db('zirakhr')
-    console.log('Connected to MongoDB successfully')
-
-    // Check if user already exists
-    console.log('Checking for existing user...')
-    const existingUser = await User.findByEmail(db, email)
-    if (existingUser) {
+    if (error) {
+      console.error('Registration error:', error)
       return NextResponse.json(
-        { error: 'User with this email already exists' },
+        { error: error },
         { status: 400 }
       )
     }
 
-    // Hash password
-    console.log('Hashing password...')
-    const hashedPassword = await bcrypt.hash(password, 10)
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Failed to create user' },
+        { status: 500 }
+      )
+    }
 
-    // Create new user
-    console.log('Creating new user...')
-    const user = await User.create(db, {
-      name,
-      email,
-      password: hashedPassword,
-      role: 'talent', // Default role, will be updated after selection
-      organization,
-      position,
-      needsRoleSelection: true // Flag to indicate user needs to select a role
+    // Update user with additional information if provided
+    // This is handled in the signUpWithEmail function
+
+    console.log('User registered successfully')
+    return NextResponse.json({
+      message: 'Registration successful',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        organization: user.organization,
+        position: user.position,
+        needsRoleSelection: user.needs_role_selection
+      }
     })
-
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user
-
-    console.log('User created successfully:', userWithoutPassword)
-
-    return NextResponse.json(
-      { message: 'User created successfully', user: userWithoutPassword },
-      { status: 201 }
-    )
   } catch (error) {
     console.error('Registration error:', error)
-    // Log detailed error information
-    if (error instanceof Error) {
-      console.error('Error name:', error.name)
-      console.error('Error message:', error.message)
-      console.error('Error stack:', error.stack)
-    }
-    
     return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: 'An error occurred during registration' },
       { status: 500 }
     )
   }

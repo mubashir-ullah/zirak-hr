@@ -29,8 +29,9 @@ Zirak HR is an AI-powered HR innovation platform designed to streamline the hiri
 - **Redux Toolkit**: For global state management.
 
 ### Backend:
-- **Node.js + Express.js**: For API logic, authentication, and data processing.
-- **MongoDB**: For flexible and scalable data storage.
+- **Next.js API Routes**: For serverless API endpoints.
+- **Supabase**: For authentication, database, and storage.
+- **PostgreSQL**: For relational data storage via Supabase.
 - **Python**: For AI/ML model integration and backend processing.
 
 ### AI/LLM Integration:
@@ -42,11 +43,29 @@ Zirak HR is an AI-powered HR innovation platform designed to streamline the hiri
 - **AWS/GCP**: For scalable, secure, and energy-efficient cloud hosting.
 - **Docker + Kubernetes**: For containerization and orchestration to support scalability.
 
+## Database Migration
+Zirak HR has successfully migrated from MongoDB to Supabase to leverage Supabase's built-in authentication, real-time capabilities, and PostgreSQL database. The migration included:
+
+### Key Components Migrated:
+1. **Authentication System**: Replaced NextAuth.js with Supabase Auth
+2. **Database Schema**: Created equivalent tables in Supabase for all MongoDB collections
+3. **API Routes**: Updated all API routes to use Supabase client instead of MongoDB
+4. **Storage**: Implemented file storage using Supabase Storage
+
+### Benefits of Migration:
+- **Improved Performance**: PostgreSQL's robust query capabilities enhance application performance
+- **Real-time Capabilities**: Supabase's real-time subscriptions enable instant updates
+- **Simplified Authentication**: Built-in auth with social providers streamlines user management
+- **Row-Level Security**: Enhanced data protection with PostgreSQL's RLS policies
+- **Reduced Complexity**: Single platform for auth, database, and storage reduces integration complexity
+
+For detailed migration information, see the [MIGRATION.md](./MIGRATION.md) file.
+
 ## System Architecture
 Zirak HR follows a three-tier architecture:
 - **Frontend (User Interface)**: Built with React.js and Next.js for a seamless user experience.
 - **Backend (Business Logic & API Layer)**: Powered by Node.js and Express.js for efficient request handling.
-- **Database Layer**: MongoDB for storing user profiles, job postings, and AI-generated insights.
+- **Database Layer**: Supabase for storing user profiles, job postings, and AI-generated insights.
 - **AI Processing Unit**: Dedicated AI module for resume parsing, job matching, and skill assessments.
 
 ## Getting Started
@@ -54,7 +73,7 @@ Zirak HR follows a three-tier architecture:
 ### Prerequisites
 - Node.js (v16 or higher)
 - Python (v3.8 or higher)
-- MongoDB (v5.0 or higher)
+- Supabase (v1.0 or higher)
 - Docker (for containerization)
 
 ### Installation
@@ -80,7 +99,7 @@ pip install -r requirements.txt
 ```
 
 #### Set Up Environment Variables:
-Create a `.env` file in the backend and frontend directories. Add the necessary environment variables (e.g., MongoDB URI, API keys).
+Create a `.env` file in the backend and frontend directories. Add the necessary environment variables (e.g., Supabase URI, API keys).
 
 #### Run the Application:
 ```bash

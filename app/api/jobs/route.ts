@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '../../../lib/mongodb';
-import { ObjectId } from 'mongodb';
+import { getAllJobs, createJob, updateJobs } from '@/lib/supabaseDb';
 
 // GET /api/jobs - Get all jobs
 export async function GET(request: Request) {
   try {
-    const { db } = await connectToDatabase();
-    const jobs = await db.collection('jobs').find({}).toArray();
+    const { jobs, error } = await getAllJobs();
+    
+    if (error) {
+      console.error('Error fetching jobs:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch jobs' },
+        { status: 500 }
+      );
+    }
     
     return NextResponse.json(jobs, { status: 200 });
   } catch (error) {
@@ -35,19 +41,23 @@ export async function POST(request: Request) {
     const now = new Date();
     const newJob = {
       ...jobData,
-      postedDate: jobData.status === 'active' ? now.toISOString().split('T')[0] : '',
+      posted_date: jobData.status === 'active' ? now.toISOString().split('T')[0] : '',
       applicants: 0,
-      createdAt: now,
-      updatedAt: now
+      created_at: now.toISOString(),
+      updated_at: now.toISOString()
     };
     
-    const { db } = await connectToDatabase();
-    const result = await db.collection('jobs').insertOne(newJob);
+    const { job, error } = await createJob(newJob);
     
-    return NextResponse.json(
-      { ...newJob, _id: result.insertedId },
-      { status: 201 }
-    );
+    if (error) {
+      console.error('Error creating job:', error);
+      return NextResponse.json(
+        { error: 'Failed to create job' },
+        { status: 500 }
+      );
+    }
+    
+    return NextResponse.json(job, { status: 201 });
   } catch (error) {
     console.error('Error creating job:', error);
     return NextResponse.json(
@@ -60,35 +70,28 @@ export async function POST(request: Request) {
 // PUT /api/jobs - Update all jobs (bulk update)
 export async function PUT(request: Request) {
   try {
-    const { jobs } = await request.json();
+    const jobsData = await request.json();
     
-    if (!Array.isArray(jobs)) {
+    if (!Array.isArray(jobsData) || jobsData.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid request format' },
+        { error: 'Invalid jobs data. Expected non-empty array.' },
         { status: 400 }
       );
     }
     
-    const { db } = await connectToDatabase();
-    const operations = jobs.map(job => {
-      const { _id, ...updateData } = job;
-      return {
-        updateOne: {
-          filter: { _id: new ObjectId(_id) },
-          update: { 
-            $set: { 
-              ...updateData,
-              updatedAt: new Date()
-            } 
-          }
-        }
-      };
-    });
+    // Update all jobs in Supabase
+    const { success, error } = await updateJobs(jobsData);
     
-    await db.collection('jobs').bulkWrite(operations);
+    if (error) {
+      console.error('Error updating jobs:', error);
+      return NextResponse.json(
+        { error: 'Failed to update jobs' },
+        { status: 500 }
+      );
+    }
     
     return NextResponse.json(
-      { message: 'Jobs updated successfully' },
+      { message: 'Jobs updated successfully', count: jobsData.length },
       { status: 200 }
     );
   } catch (error) {

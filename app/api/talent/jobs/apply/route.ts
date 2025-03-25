@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import connectToMongoose from '@/lib/mongoose';
-import JobApplication from '@/models/JobApplication';
-import Job from '@/models/Job';
-import User from '@/models/User';
+import supabase from '@/lib/supabase';
+import { createJobApplication, findJobApplicationsByUserId, findJobById, findUserById } from '@/lib/supabaseDb';
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    // Get the current session from Supabase
+    const { data: { session } } = await supabase.auth.getSession();
 
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await connectToMongoose();
-    
     const { jobId, coverLetter, resumeUrl, notes } = await req.json();
     
     if (!jobId) {
@@ -23,49 +18,59 @@ export async function POST(req: NextRequest) {
     }
     
     // Check if job exists
-    const job = await Job.findById(jobId);
+    const job = await findJobById(jobId);
     if (!job) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
     
     // Check if user has already applied to this job
-    const existingApplication = await JobApplication.findOne({
-      userId: session.user.id,
-      jobId
-    });
+    const { data: existingApplications } = await supabase
+      .from('job_applications')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .eq('job_id', jobId);
     
-    if (existingApplication) {
+    if (existingApplications && existingApplications.length > 0) {
       return NextResponse.json({ error: 'You have already applied to this job' }, { status: 400 });
     }
     
     // Get user's resume URL if not provided
     let finalResumeUrl = resumeUrl;
     if (!finalResumeUrl) {
-      const user = await User.findById(session.user.id);
-      finalResumeUrl = user?.resumeUrl || '';
+      const user = await findUserById(session.user.id);
+      finalResumeUrl = user?.resume_url || '';
     }
     
     // Create the job application
-    const application = new JobApplication({
-      userId: session.user.id,
-      jobId,
-      status: 'applied',
-      appliedDate: new Date(),
-      resumeUrl: finalResumeUrl,
-      coverLetter: coverLetter || '',
+    const now = new Date().toISOString();
+    const applicationData = {
+      job_id: jobId,
+      user_id: session.user.id,
+      status: 'applied' as 'applied',
+      applied_date: now.split('T')[0],
+      resume_url: finalResumeUrl,
+      cover_letter: coverLetter || '',
       notes: notes || '',
-      lastStatusUpdateDate: new Date()
-    });
+      last_status_update_date: now.split('T')[0]
+    };
     
-    await application.save();
+    const application = await createJobApplication(applicationData);
+    
+    if (!application) {
+      return NextResponse.json({ error: 'Failed to create application' }, { status: 500 });
+    }
     
     // Increment the application count for the job
-    await Job.findByIdAndUpdate(jobId, { $inc: { applicationCount: 1 } });
+    await supabase
+      .from('jobs')
+      .update({ application_count: (job.application_count || 0) + 1 })
+      .eq('id', jobId);
     
     return NextResponse.json({ 
       message: 'Application submitted successfully',
       application
-    });
+    }, { status: 201 });
+    
   } catch (error) {
     console.error('Error applying to job:', error);
     return NextResponse.json({ error: 'Failed to submit application' }, { status: 500 });
@@ -74,47 +79,32 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    // Get the current session from Supabase
+    const { data: { session } } = await supabase.auth.getSession();
 
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    await connectToMongoose();
     
-    // Get query parameters
-    const searchParams = req.nextUrl.searchParams;
-    const status = searchParams.get('status');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const skip = (page - 1) * limit;
+    // Get user's applications
+    const applications = await findJobApplicationsByUserId(session.user.id);
     
-    // Build filter
-    const filter: any = { userId: session.user.id };
-    if (status) {
-      filter.status = status;
+    if (!applications) {
+      return NextResponse.json({ applications: [] }, { status: 200 });
     }
     
-    // Find applications with pagination
-    const applications = await JobApplication.find(filter)
-      .sort({ appliedDate: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('jobId')
-      .lean();
+    // Get job details for each application
+    const applicationsWithJobDetails = await Promise.all(
+      applications.map(async (application) => {
+        const job = await findJobById(application.job_id);
+        return {
+          ...application,
+          job: job || null
+        };
+      })
+    );
     
-    // Get total count for pagination
-    const totalApplications = await JobApplication.countDocuments(filter);
-    
-    return NextResponse.json({
-      applications,
-      pagination: {
-        total: totalApplications,
-        page,
-        limit,
-        pages: Math.ceil(totalApplications / limit)
-      }
-    });
+    return NextResponse.json({ applications: applicationsWithJobDetails }, { status: 200 });
   } catch (error) {
     console.error('Error fetching applications:', error);
     return NextResponse.json({ error: 'Failed to fetch applications' }, { status: 500 });
