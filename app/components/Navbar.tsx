@@ -1,63 +1,47 @@
 'use client'
 
-import React, { useState, useEffect } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { ThemeToggle } from "./theme-toggle"
-import { LanguageSelector } from "./language-selector"
-import { MobileMenu } from "./MobileMenu"
-import { useLanguage } from "../contexts/LanguageContext"
-import { useAuth } from "../contexts/AuthContext"
-import { cn } from "../lib/utils"
-import { getDashboardUrl } from "../utils/auth"
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { usePathname } from 'next/navigation'
+import { cn } from '../lib/utils'
+import { MobileMenu } from './MobileMenu'
+import { ThemeToggle } from './theme-toggle'
+import { LanguageSelector } from './language-selector'
+import { useLanguage } from '../contexts/LanguageContext'
+import { useAuth } from '../contexts/AuthContext'
 
 interface NavbarProps {
-  transparent?: boolean;
-  className?: string;
+  transparent?: boolean
+  className?: string
 }
 
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/features', label: 'Features' },
+  { href: '/about', label: 'About Us' },
+]
+
 export function Navbar({ transparent = false, className }: NavbarProps) {
-  const { t } = useLanguage()
-  const { session, status, logout } = useAuth()
-  const pathname = usePathname()
-  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname()
+  const { t } = useLanguage()
+  const { user, signOut } = useAuth()
 
-  // Handle scroll effect for transparent navbar
+  const dashboardLink = user?.role === 'talent' ? '/talent/dashboard' : '/hiring-manager/dashboard'
+
+  const handleLogout = async () => {
+    await signOut()
+  }
+
   useEffect(() => {
-    if (!transparent) return
-
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 10
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled)
-      }
+      setScrolled(window.scrollY > 0)
     }
 
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [scrolled, transparent])
-
-  // Define navigation links
-  const navLinks = [
-    { href: '/', label: t('nav.home') },
-    { href: '/features', label: t('nav.features') },
-    { href: '/about', label: t('nav.about') },
-  ]
-
-  // Determine if user is authenticated and their role
-  const isAuthenticated = status === 'authenticated' && !!session?.user
-  const userRole = session?.user?.role
-  
-  // Get the appropriate dashboard link
-  const dashboardLink = getDashboardUrl(userRole)
-
-  // Handle logout with page refresh to ensure state is reset
-  const handleLogout = async () => {
-    await logout()
-    router.refresh()
-  }
+  }, [])
 
   return (
     <header 
@@ -65,26 +49,26 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
         "sticky top-0 z-40 w-full transition-standard",
         transparent && !scrolled 
           ? "bg-transparent" 
-          : "bg-background/80 backdrop-blur-sm border-b",
+          : "bg-background/80 backdrop-blur-sm border-b shadow-sm",
         className
       )}
+      style={{ position: 'relative', zIndex: 50 }}
     >
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center focus-visible">
-            <Image
-              src="/images/zirak-hr-logo.svg"
-              alt="ZIRAK HR Logo"
-              width={100}
-              height={100}
-              className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] dark:filter dark:brightness-0 dark:[filter:invert(83%)_sepia(82%)_saturate(473%)_hue-rotate(24deg)_brightness(106%)_contrast(104%)] transition-standard"
-              priority
-            />
-          </Link>
-        </div>
+        {/* Logo */}
+        <Link href="/" className="flex items-center focus-visible relative z-10">
+          <Image
+            src="/images/zirak-hr-logo.svg"
+            alt="ZIRAK HR Logo"
+            width={100}
+            height={100}
+            className="w-[85px] h-[85px] md:w-[100px] md:h-[100px] dark:filter dark:brightness-0 dark:[filter:invert(83%)_sepia(82%)_saturate(473%)_hue-rotate(24deg)_brightness(106%)_contrast(104%)] transition-standard"
+            priority
+          />
+        </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-8 relative z-10">
           {navLinks.map((link) => (
             <Link 
               key={link.href}
@@ -104,65 +88,71 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
           ))}
         </nav>
 
-        <div className="flex items-center space-x-2 md:space-x-4">
-          <div className="hidden md:block">
+        {/* Right side items */}
+        <div className="flex items-center space-x-4 relative z-10">
+          {/* Desktop Auth Controls */}
+          <div className="hidden md:flex items-center space-x-4">
             <LanguageSelector />
+            {user ? (
+              <>
+                <Link
+                  href={dashboardLink}
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                >
+                  {t('nav.dashboard')}
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                >
+                  {t('nav.logout')}
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/login"
+                  className="text-sm font-medium px-4 py-2 rounded-full border-2 border-black dark:border-[#D6FF00] bg-[#D6FF00] text-black hover:bg-[#c1e600] hover:border-[#c1e600] transition-colors relative z-10"
+                >
+                  {t('auth.login')}
+                </Link>
+                <Link
+                  href="/register"
+                  className="text-sm font-medium px-4 py-2 rounded-full border-2 border-black dark:border-[#D6FF00] bg-[#D6FF00] text-black hover:bg-[#c1e600] hover:border-[#c1e600] transition-colors relative z-10"
+                >
+                  {t('auth.register')}
+                </Link>
+              </div>
+            )}
+            <ThemeToggle />
           </div>
 
-          {/* Authentication Buttons */}
-          {isAuthenticated ? (
-            <div className="flex items-center space-x-2 md:space-x-4">
-              <Link
-                href={dashboardLink}
-                className={cn(
-                  "bg-[#D6FF00] text-black font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
-                  "rounded-full border-2 border-black dark:border-white text-xs sm:text-sm",
-                  "hover-scale transition-standard focus-visible"
-                )}
-              >
-                {t('nav.myDashboard')}
-              </Link>
-              <button
-                onClick={handleLogout}
-                className={cn(
-                  "bg-white text-black dark:bg-gray-800 dark:text-white font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
-                  "rounded-full border-2 border-black dark:border-white text-xs sm:text-sm",
-                  "hover:bg-red-500 hover:text-white hover:border-red-500 dark:hover:bg-red-500 dark:hover:text-white dark:hover:border-red-500",
-                  "transition-all duration-300 focus-visible"
-                )}
-              >
-                {t('auth.logout')}
-              </button>
+          {/* Mobile Auth Buttons and Menu */}
+          <div className="md:hidden flex items-center space-x-4">
+            {!user && (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-medium px-4 py-2 rounded-full border-2 border-black dark:border-[#D6FF00] bg-[#D6FF00] text-black hover:bg-[#c1e600] hover:border-[#c1e600] transition-colors relative z-10"
+                >
+                  {t('auth.login')}
+                </Link>
+                <Link
+                  href="/register"
+                  className="text-sm font-medium px-4 py-2 rounded-full border-2 border-black dark:border-[#D6FF00] bg-[#D6FF00] text-black hover:bg-[#c1e600] hover:border-[#c1e600] transition-colors relative z-10"
+                >
+                  {t('auth.register')}
+                </Link>
+              </>
+            )}
+            <div className="relative z-[60]">
+              <MobileMenu 
+                navLinks={navLinks} 
+                isAuthenticated={!!user}
+                dashboardLink={dashboardLink}
+                onLogout={handleLogout}
+              />
             </div>
-          ) : (
-            <>
-              <Link
-                href="/register"
-                className={cn(
-                  "bg-[#D6FF00] text-black font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
-                  "rounded-full border-2 border-black dark:border-white text-xs sm:text-sm",
-                  "hover-scale transition-standard focus-visible"
-                )}
-              >
-                {t('auth.register')}
-              </Link>
-              <span className="hidden md:inline-block text-muted-foreground">|</span>
-              <Link
-                href="/login"
-                className={cn(
-                  "bg-[#D6FF00] text-black font-medium px-3 sm:px-4 md:px-6 py-1 sm:py-1.5 md:py-2",
-                  "rounded-full border-2 border-black dark:border-white text-xs sm:text-sm",
-                  "hover-scale transition-standard focus-visible"
-                )}
-              >
-                {t('auth.login')}
-              </Link>
-            </>
-          )}
-
-          <ThemeToggle />
-          <div className="md:hidden">
-            <MobileMenu isAuthenticated={isAuthenticated} userRole={userRole} onLogout={handleLogout} />
           </div>
         </div>
       </div>

@@ -1,140 +1,139 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
-import { useLanguage } from '../contexts/LanguageContext'
-import { LanguageSelector } from './language-selector'
-import { cn } from '../lib/utils'
 import { usePathname } from 'next/navigation'
-import { useAuth } from '../contexts/AuthContext'
-import { getDashboardUrl } from '../utils/auth'
+import { Menu, X } from 'lucide-react'
+import { cn } from '../lib/utils'
+import { useLanguage } from '../contexts/LanguageContext'
+import { ThemeToggle } from './theme-toggle'
+import { LanguageSelector } from './language-selector'
 
 interface MobileMenuProps {
-  isAuthenticated: boolean;
-  userRole?: string;
-  onLogout: () => void;
+  navLinks: Array<{ href: string; label: string }>
+  isAuthenticated: boolean
+  dashboardLink: string
+  onLogout: () => void
 }
 
-export function MobileMenu({ isAuthenticated, userRole, onLogout }: MobileMenuProps) {
+export function MobileMenu({ navLinks, isAuthenticated, dashboardLink, onLogout }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const { t } = useLanguage()
   const pathname = usePathname()
-  const dashboardLink = getDashboardUrl(userRole)
+  const { t } = useLanguage()
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsOpen(false)
+  }, [pathname])
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
 
   const toggleMenu = () => {
     setIsOpen(!isOpen)
-    // Prevent scrolling when menu is open
-    if (!isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'auto'
-    }
   }
-
-  const closeMenu = () => {
-    setIsOpen(false)
-    document.body.style.overflow = 'auto'
-  }
-
-  // Common navigation links
-  const commonNavLinks = [
-    { href: '/', label: t('nav.home') },
-    { href: '/features', label: t('nav.features') },
-    { href: '/about', label: t('nav.about') },
-  ]
-
-  // Authentication-specific links
-  const authLinks = isAuthenticated
-    ? [
-        { href: dashboardLink, label: t('nav.myDashboard') },
-        { href: '#', label: t('auth.logout'), onClick: () => { closeMenu(); onLogout(); } }
-      ]
-    : [
-        { href: '/login', label: t('auth.login') },
-        { href: '/register', label: t('auth.register') }
-      ]
-
-  // Combine all navigation links
-  const navLinks = [...commonNavLinks, ...authLinks]
 
   return (
     <>
-      <button 
-        onClick={toggleMenu} 
-        className="p-2 focus-visible"
+      <button
+        onClick={toggleMenu}
+        className="p-2 text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+        aria-label="Toggle mobile menu"
         aria-expanded={isOpen}
-        aria-controls="mobile-menu"
-        aria-label={isOpen ? "Close menu" : "Open menu"}
       >
-        {isOpen ? (
-          <X className="h-6 w-6" />
-        ) : (
-          <Menu className="h-6 w-6" />
-        )}
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
-      {/* Mobile menu overlay */}
-      <div 
-        className={cn(
-          "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-all duration-300",
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
-        onClick={closeMenu}
-        aria-hidden="true"
-      />
-
-      {/* Mobile menu panel */}
-      <div
-        id="mobile-menu"
-        className={cn(
-          "fixed top-0 right-0 z-50 h-full w-3/4 max-w-sm bg-background p-6 shadow-lg transition-standard",
-          isOpen ? "translate-x-0" : "translate-x-full"
-        )}
-        aria-hidden={!isOpen}
-      >
-        <div className="flex justify-end mb-8">
-          <button 
-            onClick={closeMenu} 
-            className="p-2 focus-visible"
-            aria-label="Close menu"
+      {isOpen && (
+        <div className="fixed inset-0 z-[100]" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0 }}>
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            onClick={toggleMenu}
+            style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0 }}
+          />
+          
+          {/* Menu Content */}
+          <div 
+            className="absolute right-0 top-0 h-[100vh] w-[300px] bg-background shadow-xl overflow-y-auto"
+            style={{ position: 'fixed', top: 0, right: 0, height: '100vh' }}
           >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
+            <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm border-b p-4">
+              <div className="flex items-center justify-between">
+                <ThemeToggle />
+                <LanguageSelector mobile />
+                <button
+                  onClick={toggleMenu}
+                  className="p-2 text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
 
-        <nav className="flex flex-col space-y-6">
-          {navLinks.map((link, index) => (
-            link.onClick ? (
-              <button
-                key={index}
-                onClick={link.onClick}
-                className={cn(
-                  "text-lg font-medium transition-standard hover:text-primary text-left",
-                  pathname === link.href && "text-primary font-semibold"
+            <nav className="relative z-10 p-6">
+              <ul className="space-y-6">
+                {/* Navigation Links */}
+                {navLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className={cn(
+                        "block text-lg font-medium transition-colors",
+                        pathname === link.href
+                          ? "text-black dark:text-white"
+                          : "text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                      )}
+                      onClick={toggleMenu}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+
+                {/* Auth Section */}
+                {isAuthenticated && (
+                  <>
+                    <li>
+                      <div className="h-px bg-gray-200 dark:bg-gray-800 my-6" />
+                    </li>
+                    <li>
+                      <Link
+                        href={dashboardLink}
+                        className="block text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                        onClick={toggleMenu}
+                      >
+                        {t('nav.dashboard')}
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => {
+                          onLogout()
+                          toggleMenu()
+                        }}
+                        className="block w-full text-left text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                      >
+                        {t('nav.logout')}
+                      </button>
+                    </li>
+                  </>
                 )}
-              >
-                {link.label}
-              </button>
-            ) : (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "text-lg font-medium transition-standard hover:text-primary",
-                  pathname === link.href && "text-primary font-semibold"
-                )}
-                onClick={closeMenu}
-              >
-                {link.label}
-              </Link>
-            )
-          ))}
-          <div className="pt-4">
-            <LanguageSelector />
+              </ul>
+            </nav>
           </div>
-        </nav>
-      </div>
+        </div>
+      )}
     </>
   )
 }

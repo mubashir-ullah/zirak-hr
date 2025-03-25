@@ -1,103 +1,64 @@
 'use client'
 
-import React from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
-import { Check, ChevronDown } from 'lucide-react'
+import { FlagIcon } from './ui/flag-icon'
 import { cn } from '../lib/utils'
-import { Language } from '../contexts/LanguageContext'
-import Image from 'next/image'
 
-// Language mapping with full names and flag paths
-const languageDetails: Record<Language, { name: string; flag: string }> = {
-  en: { name: 'English', flag: '/images/flags/uk.svg' },
-  de: { name: 'Deutsch', flag: '/images/flags/germany.svg' },
-  ur: { name: 'اردو', flag: '/images/flags/pakistan.svg' }
+type Language = 'en' | 'de' | 'ur'
+
+const languages = [
+  { code: 'en' as const, name: 'English' },
+  { code: 'de' as const, name: 'German' },
+  { code: 'ur' as const, name: 'Urdu' },
+] as const
+
+interface LanguageSelectorProps {
+  mobile?: boolean
 }
 
-export function LanguageSelector() {
-  const { language, setLanguage, availableLanguages } = useLanguage()
-  const [isOpen, setIsOpen] = React.useState(false)
-  const ref = React.useRef<HTMLDivElement>(null)
-
-  // Close the dropdown when clicking outside
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsOpen(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
-
-  const toggleDropdown = () => setIsOpen(!isOpen)
-
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang)
-    setIsOpen(false)
-  }
+export function LanguageSelector({ mobile = false }: LanguageSelectorProps) {
+  const { language, setLanguage } = useLanguage()
 
   return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={toggleDropdown}
-        className="flex items-center space-x-2 px-2 py-1 rounded-md hover:bg-accent transition-standard focus-visible"
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-        aria-label="Select language"
+    <div className="relative inline-block">
+      <select
+        value={language}
+        onChange={(e) => setLanguage(e.target.value as Language)}
+        className={cn(
+          "appearance-none cursor-pointer",
+          mobile 
+            ? "bg-transparent text-base font-medium text-black dark:text-white px-2 py-1"
+            : "bg-transparent border-2 border-black dark:border-[#D6FF00] rounded-full pl-9 pr-8 py-1 text-sm font-medium text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D6FF00] focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+        )}
       >
-        <div className="relative w-5 h-5 overflow-hidden rounded-sm">
-          <Image 
-            src={languageDetails[language].flag} 
-            alt={`${languageDetails[language].name} flag`}
-            fill
-            className="object-cover"
-          />
-        </div>
-        <span className="text-xs font-medium">{languageDetails[language].name}</span>
-        <ChevronDown className={cn(
-          "h-3 w-3 transition-transform duration-200",
-          isOpen && "transform rotate-180"
-        )} />
-      </button>
-
-      {isOpen && (
-        <div 
-          className="absolute right-0 mt-1 w-40 rounded-md border bg-popover shadow-md z-10 animate-fade-in"
-          role="listbox"
-          aria-label="Languages"
-        >
-          <div className="py-1">
-            {availableLanguages.map((lang) => (
-              <button
-                key={lang}
-                className={cn(
-                  "flex items-center w-full px-3 py-2 text-sm text-left",
-                  "hover:bg-accent hover:text-accent-foreground transition-standard",
-                  language === lang && "bg-accent/50"
-                )}
-                onClick={() => handleLanguageChange(lang)}
-                role="option"
-                aria-selected={language === lang}
-              >
-                <div className="relative w-5 h-5 overflow-hidden rounded-sm mr-2">
-                  <Image 
-                    src={languageDetails[lang].flag} 
-                    alt={`${languageDetails[lang].name} flag`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <span className="flex-grow">{languageDetails[lang].name}</span>
-                {language === lang && <Check className="h-4 w-4 ml-2" />}
-              </button>
-            ))}
-          </div>
+        {languages.map(({ code, name }) => (
+          <option key={code} value={code}>
+            {mobile ? code.toUpperCase() : name}
+          </option>
+        ))}
+      </select>
+      
+      {!mobile && (
+        <div className="absolute inset-y-0 left-2 flex items-center pointer-events-none">
+          <FlagIcon code={language} size={16} />
         </div>
       )}
+      
+      <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+        <svg 
+          className="w-4 h-4 text-black dark:text-white"
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M19 9l-7 7-7-7" 
+          />
+        </svg>
+      </div>
     </div>
   )
 }
