@@ -18,6 +18,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added "Remember Me" functionality for extended sessions
 - Better error handling for social login and account linking
 
+## [0.1.1] - 2025-03-25
+### Cleanup and Structure Improvements
+- Removed duplicate metadata files
+- Cleaned up legacy NextAuth.js and MongoDB files
+- Consolidated role selection pages
+- Organized project structure according to Next.js best practices
+- Removed unused dependencies
+- Updated file organization for better maintainability
+
+### File Structure Updates
+- Consolidated all metadata files into a single location
+- Moved all authentication logic to dedicated auth directory
+- Reorganized API routes for better clarity
+- Updated import paths to use absolute imports
+- Removed duplicate role selection implementation
+
+### Best Practices Implementation
+- Implemented proper Next.js 13+ file structure
+- Added proper type definitions
+- Improved error handling
+- Enhanced code organization
+- Updated component structure for better reusability
+
 ## [0.1.0] - 2025-03-25
 
 ### Added

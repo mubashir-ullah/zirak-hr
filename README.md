@@ -68,6 +68,58 @@ Zirak HR follows a three-tier architecture:
 - **Database Layer**: Supabase for storing user profiles, job postings, and AI-generated insights.
 - **AI Processing Unit**: Dedicated AI module for resume parsing, job matching, and skill assessments.
 
+## Project Structure
+
+```
+zirak-hr/
+├── app/                    # Next.js 13+ App Router
+│   ├── api/               # API routes
+│   ├── auth/              # Authentication related pages
+│   ├── dashboard/         # Dashboard pages (talent & hiring manager)
+│   ├── components/        # Shared components
+│   └── contexts/          # React contexts
+├── public/                # Static files
+├── styles/                # Global styles
+├── types/                 # TypeScript type definitions
+├── lib/                   # Shared utilities
+│   ├── supabase/         # Supabase related utilities
+│   └── utils/            # General utilities
+├── supabase/             # Supabase configurations and migrations
+└── ai-service/           # Python AI service
+```
+
+## Best Practices
+
+1. **File Organization**
+   - Components are organized by feature/module
+   - Shared components are in the components directory
+   - API routes follow the same structure as the frontend pages
+   - Utilities are properly separated in the lib directory
+
+2. **Code Style**
+   - TypeScript for type safety
+   - ESLint and Prettier for code formatting
+   - Absolute imports using @/ prefix
+   - Proper error handling and logging
+
+3. **Authentication**
+   - Supabase Auth for authentication
+   - Role-based access control
+   - Protected API routes and pages
+   - Secure session management
+
+4. **Performance**
+   - Server components where possible
+   - Proper image optimization
+   - API route optimization
+   - Efficient database queries
+
+5. **Testing**
+   - Jest for unit tests
+   - React Testing Library for component tests
+   - API route testing
+   - E2E testing with Cypress
+
 ## Getting Started
 
 ### Prerequisites
