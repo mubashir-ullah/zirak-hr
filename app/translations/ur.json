@@ -2,11 +2,36 @@
   "nav": {
     "home": "ہوم",
     "features": "خصوصیات",
-    "about": "ہمارے بارے میں"
+    "about": "ہمارے بارے میں",
+    "login": "لاگ ان",
+    "register": "رجسٹر",
+    "logout": "لاگ آؤٹ",
+    "dashboard": "ڈیش بورڈ"
   },
   "auth": {
     "login": "لاگ ان",
-    "register": "رجسٹر"
+    "register": "رجسٹر",
+    "logout": "لاگ آؤٹ",
+    "email": "ای میل",
+    "password": "پاس ورڈ",
+    "confirmPassword": "پاس ورڈ کی تصدیق کریں",
+    "fullName": "پورا نام",
+    "organization": "تنظیم",
+    "position": "عہدہ",
+    "enterEmail": "ای میل درج کریں",
+    "enterPassword": "پاس ورڈ درج کریں",
+    "enterFullName": "پورا نام درج کریں",
+    "enterOrganization": "تنظیم درج کریں",
+    "enterPosition": "عہدہ درج کریں",
+    "rememberMe": "مجھے یاد رکھیں",
+    "forgotPassword": "پاس ورڈ بھول گئے؟",
+    "loggingIn": "لاگ ان ہو رہا ہے...",
+    "registering": "رجسٹر ہو رہا ہے...",
+    "orContinueWith": "یا جاری رکھیں",
+    "noAccount": "اکاؤنٹ نہیں ہے؟",
+    "alreadyHaveAccount": "پہلے سے اکاؤنٹ ہے؟",
+    "loginDescription": "اپنے اکاؤنٹ میں لاگ ان کریں",
+    "registerDescription": "نیا اکاؤنٹ بنائیں"
   },
   "App Features": "ایپ کی خصوصیات",
   "From smart resume parsing to intelligent candidate matching – Zirak HR transforms the way you recruit.": "سمارٹ ریزیوم پارسنگ سے لے کر انٹیلیجنٹ امیدوار میچنگ تک - زیرک ایچ آر بھرتی کے طریقے کو تبدیل کرتا ہے۔",
@@ -28,4 +53,4 @@
   "A user friendly interface to make it easy to find the right talent.": "درست صلاحیت کو تلاش کرنے کے لیے آسان صارف دوست انٹرفیس۔",
   "Green Coding and Sustainable App": "گرین کوڈنگ اور پائیدار ایپ",
   "A green coding and sustainable app which cares for the environment.": "ایک گرین کوڈنگ اور پائیدار ایپ جو ماحول کا خیال رکھتی ہے۔"
-} 
+}
