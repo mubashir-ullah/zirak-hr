@@ -100,7 +100,7 @@ export default function About() {
             <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg">
               <iframe 
                 className="w-full h-full"
-                src="https://www.youtube.com/embed/mE9d-if0Szs" 
+                src="https://www.youtube.com/embed/JYhSpX5e2Sc" 
                 title="Zirak HR: Our Story"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
