@@ -20,7 +20,7 @@ export default function About() {
             <div className="text-center md:text-left space-y-8">
               <div className="space-y-6">
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif leading-tight bg-gradient-to-r from-black via-black to-[#D6FF00] dark:from-white dark:via-white dark:to-[#D6FF00] bg-clip-text text-transparent">
-                  About Zirak HR
+                  Zirak HR
                 </h1>
                 <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto md:mx-0 leading-relaxed">
                   Transforming the hiring landscape with AI-powered matching and seamless connections between talent and opportunities.
