@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { findUserByEmail } from '@/lib/supabaseDb';
+import { ThemeAwareLogo } from '@/components/ThemeAwareLogo';
+import { Footer } from '@/components/Footer';
+import Link from 'next/link';
 
 export default function VerifyEmail() {
   const router = useRouter();
@@ -13,7 +15,7 @@ export default function VerifyEmail() {
 
   const supabase = createClientComponentClient();
 
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -41,7 +43,7 @@ export default function VerifyEmail() {
     };
   }, []);
 
-  const handleOtpChange = (index, value) => {
+  const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) {
       value = value.slice(0, 1);
     }
@@ -55,7 +57,7 @@ export default function VerifyEmail() {
     setOtp(newOtp);
   };
 
-  const handleKeyDown = (e, index) => {
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
       if (prevInput) {
@@ -64,7 +66,7 @@ export default function VerifyEmail() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
@@ -181,79 +183,102 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-        <div className="text-center">
-          <Image
-            src="/logo.png"
-            alt="Zirak HR Logo"
-            width={80}
-            height={80}
-            className="mx-auto"
-          />
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-            Verify Your Email
-          </h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            We've sent a verification code to {email}
-          </p>
-        </div>
-
-        {error && (
-          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-            {success}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div>
-            <label htmlFor="otp" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Enter Verification Code
-            </label>
-            <div className="mt-1 flex justify-between gap-2">
-              {otp.map((digit, index) => (
-                <input
-                  key={index}
-                  type="text"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleOtpChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
-                  id={`otp-${index}`}
-                  className="w-12 h-12 text-center text-xl font-bold border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                  required
-                />
-              ))}
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+      {/* Back button */}
+      <div className="container mx-auto px-4 py-4">
+        <Link href="/register" className="inline-flex items-center text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+          </svg>
+          Back to Register
+        </Link>
+      </div>
+      
+      {/* Main content */}
+      <div className="flex-grow flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md p-4 sm:p-8 space-y-6 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
+          <div className="text-center">
+            <div className="flex justify-center">
+              <ThemeAwareLogo width={300} height={100} className="mx-auto" />
             </div>
+            <h2 className="mt-4 text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white">
+              Verify Your Email
+            </h2>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              We've sent a verification code to {email}
+            </p>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting || otp.some((digit) => !digit)}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Verifying...' : 'Verify Email'}
-            </button>
-          </div>
-        </form>
+          <form onSubmit={handleSubmit} className="mt-4 space-y-6">
+            <div>
+              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Verification Code
+              </label>
+              <div className="mt-2 flex justify-center space-x-2 sm:space-x-4">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    onInput={(e) => {
+                      const target = e.target as HTMLInputElement;
+                      if (target.value && index < 5) {
+                        const nextInput = document.getElementById(`otp-${index + 1}`);
+                        if (nextInput) {
+                          nextInput.focus();
+                        }
+                      }
+                    }}
+                    className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-semibold border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#d6ff00] focus:border-[#d6ff00] dark:bg-gray-800 dark:text-white"
+                  />
+                ))}
+              </div>
+            </div>
 
-        <div className="text-center mt-4">
-          <button
-            onClick={handleResendOtp}
-            disabled={resendDisabled}
-            className="text-sm text-primary hover:text-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {resendDisabled ? `Resend code in ${countdown}s` : 'Resend verification code'}
-          </button>
+            {error && (
+              <div className="text-red-500 text-sm text-center">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="text-green-500 text-sm text-center">
+                {success}
+              </div>
+            )}
+
+            <div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-[#d6ff00] hover:bg-[#b3e600] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#d6ff00] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Verifying...' : 'Verify Email'}
+              </button>
+            </div>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={resendDisabled}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+              >
+                {resendDisabled
+                  ? `Resend code in ${countdown}s`
+                  : "Didn't receive the code? Resend"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

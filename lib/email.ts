@@ -19,8 +19,16 @@ const createTransporter = async () => {
   // For production, use actual SMTP credentials
   if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
     console.log('Using configured email settings from environment variables');
+    console.log(`Email host: ${process.env.EMAIL_HOST}`);
+    console.log(`Email port: ${process.env.EMAIL_PORT}`);
+    console.log(`Email user: ${process.env.EMAIL_USER}`);
+    console.log(`Email from: ${process.env.EMAIL_FROM}`);
+    
     try {
-      const transporter = nodemailer.createTransport({
+      // Gmail specific configuration
+      const isGmail = process.env.EMAIL_HOST.includes('gmail');
+      
+      const transporterConfig = {
         host: process.env.EMAIL_HOST,
         port: parseInt(process.env.EMAIL_PORT || '587'),
         secure: process.env.EMAIL_SECURE === 'true',
@@ -28,9 +36,26 @@ const createTransporter = async () => {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASSWORD,
         },
-      });
+        // Add specific settings for Gmail
+        ...(isGmail && {
+          tls: {
+            rejectUnauthorized: true,
+          },
+        }),
+      };
+      
+      console.log('Creating transporter with config:', JSON.stringify({
+        ...transporterConfig,
+        auth: { 
+          user: transporterConfig.auth.user,
+          pass: '********' // Don't log the actual password
+        }
+      }, null, 2));
+      
+      const transporter = nodemailer.createTransport(transporterConfig);
       
       // Verify connection configuration
+      console.log('Verifying SMTP connection...');
       await transporter.verify();
       console.log('SMTP connection verified successfully');
       return transporter;
@@ -96,6 +121,7 @@ export const sendEmail = async ({ to, subject, html }: EmailOptions): Promise<Em
     console.log('- EMAIL_PASSWORD configured:', !!process.env.EMAIL_PASSWORD);
     console.log('- EMAIL_FROM configured:', !!process.env.EMAIL_FROM);
     console.log('- NODE_ENV:', process.env.NODE_ENV);
+    console.log('- NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
     
     const transporter = await createTransporter();
     
@@ -112,11 +138,21 @@ export const sendEmail = async ({ to, subject, html }: EmailOptions): Promise<Em
     
     // Get preview URL for Ethereal emails
     let previewUrl: string | undefined;
-    if (process.env.NODE_ENV !== 'production' && 'getTestMessageUrl' in nodemailer) {
+    if (info && typeof (nodemailer as any).getTestMessageUrl === 'function') {
       const url = (nodemailer as any).getTestMessageUrl(info);
       if (url) {
         previewUrl = url.toString();
         console.log('Preview URL: %s', previewUrl);
+        
+        // Log more prominently for development environment
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('');
+          console.log('============================================');
+          console.log('📧 TEST EMAIL SENT - VIEW AT THIS URL:');
+          console.log(previewUrl);
+          console.log('============================================');
+          console.log('');
+        }
       }
     }
     
@@ -133,6 +169,26 @@ export const sendEmail = async ({ to, subject, html }: EmailOptions): Promise<Em
     // Try to provide more context about the error
     if (error instanceof Error && 'code' in error) {
       console.error('Error code:', (error as any).code);
+    }
+    
+    // Gmail-specific error handling
+    if (process.env.EMAIL_HOST?.includes('gmail') && errorMessage.includes('535')) {
+      console.error('');
+      console.error('============================================');
+      console.error('GMAIL AUTHENTICATION ERROR');
+      console.error('This is likely due to one of these issues:');
+      console.error('1. Your Gmail password is incorrect');
+      console.error('2. You need to use an App Password instead of your regular password');
+      console.error('3. You need to enable "Less secure app access" in your Google account');
+      console.error('4. Your Google account has 2FA enabled and requires an App Password');
+      console.error('');
+      console.error('To create an App Password:');
+      console.error('- Go to your Google Account > Security');
+      console.error('- Under "Signing in to Google," select App Passwords');
+      console.error('- Generate a new App Password for "Mail" and "Other"');
+      console.error('- Use that 16-character password in your EMAIL_PASSWORD env var');
+      console.error('============================================');
+      console.error('');
     }
     
     return { 
@@ -203,10 +259,12 @@ export const sendPasswordResetEmail = async (to: string, resetToken: string, bas
 
 // Send OTP verification email
 export const sendOTPVerificationEmail = async (to: string, otp: string): Promise<EmailResult> => {
+  console.log(`Preparing OTP verification email for ${to} with code: ${otp}`);
+  
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
       <div style="text-align: center; margin-bottom: 20px;">
-        <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/logo.svg" alt="Zirak HR Logo" style="height: 50px;">
+        <img src="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/images/zirak-hr-logo.svg" alt="Zirak HR Logo" style="height: 50px;">
       </div>
       <h2 style="color: #333; text-align: center;">Verify Your Email Address</h2>
       <p style="color: #666; line-height: 1.5;">Thank you for registering with Zirak HR. Please use the following verification code to complete your registration:</p>
@@ -215,7 +273,7 @@ export const sendOTPVerificationEmail = async (to: string, otp: string): Promise
       </div>
       <p style="color: #666; line-height: 1.5;">This code will expire in 10 minutes. If you did not request this verification, please ignore this email.</p>
       <div style="text-align: center; margin-top: 30px; color: #999; font-size: 12px;">
-        <p> ${new Date().getFullYear()} Zirak HR. All rights reserved.</p>
+        <p>&copy; ${new Date().getFullYear()} Zirak HR. All rights reserved.</p>
       </div>
     </div>
   `;

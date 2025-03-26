@@ -81,26 +81,34 @@ export interface SavedJobData {
 }
 
 // User operations
-export const createUser = async (userData: Omit<UserData, 'id' | 'created_at' | 'updated_at'>): Promise<UserData | null> => {
-  const newUser = {
-    ...userData,
-    id: uuidv4(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
+export const createUser = async (userData: Omit<UserData, 'id' | 'created_at' | 'updated_at'> & { id: string }): Promise<{ user: UserData | null, error: any }> => {
+  try {
+    const newUser = {
+      ...userData,
+      id: userData.id, // Use provided ID
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
 
-  const { data, error } = await supabase
-    .from('users')
-    .insert(newUser)
-    .select()
-    .single();
+    console.log('Creating user with data:', JSON.stringify(newUser, null, 2));
 
-  if (error) {
-    console.error('Error creating user:', error);
-    return null;
+    const { data, error } = await supabase
+      .from('users')
+      .insert(newUser)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating user:', error);
+      return { user: null, error };
+    }
+
+    console.log('User created successfully:', data);
+    return { user: data, error: null };
+  } catch (err) {
+    console.error('Exception in createUser:', err);
+    return { user: null, error: err };
   }
-
-  return data;
 };
 
 export const getUserByEmail = async (email: string): Promise<UserData | null> => {

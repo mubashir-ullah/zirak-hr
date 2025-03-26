@@ -37,7 +37,15 @@ export async function POST(request: NextRequest) {
       social_provider: social_provider || null // Store the social provider if available
     };
 
-    const user = await createUser(userData);
+    const { user, error } = await createUser(userData);
+
+    if (error) {
+      console.error('Database error creating user:', error);
+      return NextResponse.json(
+        { message: 'Failed to create user record', error: error.message || 'Database error' },
+        { status: 500 }
+      );
+    }
 
     if (!user) {
       return NextResponse.json(

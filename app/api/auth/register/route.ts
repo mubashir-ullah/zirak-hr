@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { signUpWithEmail } from '@/lib/supabaseAuth'
+import { generateOTP, hashOTP, storeOTP } from '@/lib/otp'
+import { sendOTPVerificationEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
@@ -37,6 +39,43 @@ export async function POST(request: Request) {
         { error: 'Failed to create user' },
         { status: 500 }
       )
+    }
+
+    // Generate and send OTP for email verification
+    console.log('Generating OTP for email verification...');
+    const otp = generateOTP();
+    console.log('OTP generated:', otp);
+    
+    const hashedOTP = hashOTP(otp, email);
+    console.log('OTP hashed successfully');
+    
+    // Set expiration time (10 minutes from now)
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+    console.log('OTP expiration set to:', expiresAt.toISOString());
+    
+    // Store the OTP in the database
+    console.log('Attempting to store OTP in database...');
+    const stored = await storeOTP(email, hashedOTP, expiresAt);
+    console.log('OTP storage result:', stored ? 'Success' : 'Failed');
+    
+    if (!stored) {
+      console.error('Failed to store OTP');
+      // Continue with registration but log the error
+    } else {
+      // Send the OTP via email
+      console.log('Sending OTP verification email to:', email);
+      const emailResult = await sendOTPVerificationEmail(email, otp);
+      console.log('OTP email sent result:', emailResult);
+      
+      if (emailResult.previewUrl) {
+        console.log('');
+        console.log('============================================');
+        console.log('📧 TEST EMAIL PREVIEW URL:');
+        console.log(emailResult.previewUrl);
+        console.log('============================================');
+        console.log('');
+      }
     }
 
     // Update user with additional information if provided

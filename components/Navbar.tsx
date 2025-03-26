@@ -1,10 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { useTheme } from 'next-themes'
 import { ThemeToggle } from './theme-toggle'
-import { LanguageSelector } from './language-selector'
+import { ThemeAwareLogo } from './ThemeAwareLogo'
 
 export function Navbar() {
   const { theme } = useTheme()
@@ -15,18 +14,11 @@ export function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <Image 
-                src="/images/zirak-hr-logo.svg" 
-                alt="Zirak HR Logo" 
-                width={240} 
-                height={80} 
-                className="h-20 w-auto"
-              />
+              <ThemeAwareLogo width={240} height={80} className="h-20 w-auto" />
             </Link>
           </div>
           
           <div className="flex items-center space-x-4">
-            <LanguageSelector />
             <ThemeToggle />
             <Link
               href="/login"
