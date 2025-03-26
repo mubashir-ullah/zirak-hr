@@ -42,11 +42,6 @@ export function Features() {
       title: 'On-Click Job Apply',
       description: 'Apply to multiple positions with a single click and track your applications in real-time.',
     },
-    {
-      icon: <LineChart className="w-12 h-12 text-[#d6ff00]" />,
-      title: 'Career Growth Insights',
-      description: 'Get personalized recommendations for skills development and career advancement opportunities.',
-    },
   ]
 
   const recruiterFeatures = [
@@ -117,7 +112,7 @@ export function Features() {
           </TabsList>
           
           <TabsContent value="talent" className="mt-2">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 mx-auto">
               {talentFeatures.map((feature, index) => (
                 <FeatureCard key={index} feature={feature} index={index} />
               ))}
@@ -125,7 +120,7 @@ export function Features() {
           </TabsContent>
           
           <TabsContent value="recruiters" className="mt-2">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 mx-auto">
               {recruiterFeatures.map((feature, index) => (
                 <FeatureCard key={index} feature={feature} index={index} />
               ))}
@@ -133,7 +128,7 @@ export function Features() {
           </TabsContent>
           
           <TabsContent value="platform" className="mt-2">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 mx-auto">
               {platformFeatures.map((feature, index) => (
                 <FeatureCard key={index} feature={feature} index={index} />
               ))}
