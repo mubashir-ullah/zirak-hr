@@ -229,7 +229,7 @@ export default function LoginPage() {
                       </label>
                       <Link
                         href="/forgot-password"
-                        className="text-sm text-primary hover:text-primary-dark transition-colors"
+                        className="text-sm text-blue-500 hover:text-blue-700 transition-colors"
                       >
                         Forgot password?
                       </Link>
@@ -274,7 +274,7 @@ export default function LoginPage() {
                     type="submit"
                     disabled={loading}
                     className={cn(
-                      "w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors",
+                      "w-full px-4 py-2.5 rounded-lg bg-[#D6FF00] hover:bg-[#c1e600] text-black font-medium border-2 border-black dark:border-[#D6FF00] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D6FF00] transform transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]",
                       loading && "opacity-70 cursor-not-allowed"
                     )}
                   >
@@ -300,7 +300,7 @@ export default function LoginPage() {
             <div className="text-center mt-6">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{' '}
-                <Link href="/register" className="font-medium text-primary hover:text-primary-dark transition-colors">
+                <Link href="/register" className="font-medium text-blue-500 hover:text-blue-700 transition-colors">
                   Sign up
                 </Link>
               </p>
