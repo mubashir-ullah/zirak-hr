@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '../lib/utils'
 import { MobileMenu } from './MobileMenu'
 import { ThemeToggle } from './theme-toggle'
@@ -23,9 +23,23 @@ const navLinks = [
 export function Navbar({ transparent = false, className }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
-  const { user, signOut } = useAuth()
+  const router = useRouter()
+  const { user, signOut, isEmailVerified } = useAuth()
 
   const dashboardLink = user?.role === 'talent' ? '/talent/dashboard' : '/hiring-manager/dashboard'
+
+  const handleDashboardClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    
+    // Check if email is verified
+    if (!isEmailVerified()) {
+      // Redirect to email verification page if email is not verified
+      router.push(`/verify-email?email=${encodeURIComponent(user?.email || '')}`)
+    } else {
+      // If email is verified, proceed to dashboard
+      router.push(dashboardLink)
+    }
+  }
 
   const handleLogout = async () => {
     await signOut()
@@ -91,12 +105,12 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <Link
-                  href={dashboardLink}
+                <button
+                  onClick={handleDashboardClick}
                   className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                 >
                   Dashboard
-                </Link>
+                </button>
                 <button
                   onClick={handleLogout}
                   className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
@@ -133,7 +147,7 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
 
           {/* Mobile Menu */}
           <div className="md:hidden">
-            <MobileMenu />
+            <MobileMenu navLinks={navLinks} />
           </div>
         </div>
       </div>

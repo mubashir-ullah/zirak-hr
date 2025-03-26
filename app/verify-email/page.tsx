@@ -255,7 +255,7 @@ export default function VerifyEmail() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-[#d6ff00] hover:bg-[#b3e600] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#d6ff00] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-2 px-4 border-2 border-black dark:border-[#d6ff00] rounded-md shadow-sm text-sm font-medium text-black bg-[#d6ff00] hover:bg-[#b3e600] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#d6ff00] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Verifying...' : 'Verify Email'}
               </button>
@@ -266,7 +266,7 @@ export default function VerifyEmail() {
                 type="button"
                 onClick={handleResendOtp}
                 disabled={resendDisabled}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+                className="text-sm px-4 py-2 border-2 border-black dark:border-gray-600 rounded-md bg-transparent text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent dark:disabled:hover:bg-transparent"
               >
                 {resendDisabled
                   ? `Resend code in ${countdown}s`

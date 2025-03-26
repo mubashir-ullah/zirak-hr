@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateOTP, hashOTP, storeOTP } from '@/lib/otp';
 import { sendOTPVerificationEmail } from '@/lib/email';
 import supabase from '@/lib/supabase';
-import { findUserByEmail } from '@/lib/supabaseDb';
+import { findUserByEmail, createUser } from '@/lib/supabaseDb';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,16 +17,60 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if the user exists in our database
-    const user = await findUserByEmail(email);
+    let user = await findUserByEmail(email);
 
+    // If user not found in our custom table, check Supabase Auth
     if (!user) {
-      return NextResponse.json(
-        { message: 'User not found. Please register first.' },
-        { status: 404 }
-      );
+      // Check if user exists in Supabase Auth
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false, // Don't create a new user, just check if one exists
+        }
+      });
+      
+      // If we get a response without an error, the user exists in Auth
+      if (!error) {
+        console.log('User found in Auth but not in custom table, creating user record');
+        
+        // Get the user ID from the session
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userId = sessionData.session?.user?.id;
+        
+        if (userId) {
+          // Get the provider from app_metadata if available
+          const provider = sessionData.session?.user?.app_metadata?.provider;
+          const socialProvider = provider ? String(provider) : undefined;
+          
+          // Create a user record in our custom table
+          const { user: newUser, error: createError } = await createUser({
+            id: userId,
+            name: sessionData.session?.user?.user_metadata?.name || 'User',
+            email: email.toLowerCase(),
+            role: 'talent', // Default role, will be updated during role selection
+            needs_role_selection: true,
+            email_verified: false,
+            social_provider: socialProvider
+          });
+          
+          if (createError) {
+            console.error('Error creating user record:', createError);
+          } else {
+            user = newUser;
+          }
+          
+          // Sign out after checking to avoid creating a session
+          await supabase.auth.signOut();
+        }
+      } else {
+        console.log('User not found in Auth or custom table');
+        // For security, don't reveal if the user exists or not
+        // Just proceed with OTP generation as if the user exists
+      }
     }
 
-    // Generate a new OTP
+    // Generate a new OTP regardless of whether we found the user or not
+    // This prevents user enumeration attacks
     const otp = generateOTP();
     
     // Hash the OTP for secure storage

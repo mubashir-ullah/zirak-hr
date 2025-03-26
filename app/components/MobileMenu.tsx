@@ -2,16 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { ThemeToggle } from './theme-toggle'
+import { useAuth } from '../contexts/AuthContext'
 
 interface MobileMenuProps {
   navLinks?: Array<{ href: string; label: string }>
-  isAuthenticated?: boolean
-  dashboardLink?: string
-  onLogout?: () => void
 }
 
 const defaultNavLinks = [
@@ -21,13 +19,14 @@ const defaultNavLinks = [
 ]
 
 export function MobileMenu({ 
-  navLinks = defaultNavLinks, 
-  isAuthenticated = false, 
-  dashboardLink = '/dashboard', 
-  onLogout 
+  navLinks = defaultNavLinks
 }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, signOut, isEmailVerified } = useAuth()
+
+  const dashboardLink = user?.role === 'talent' ? '/talent/dashboard' : '/hiring-manager/dashboard'
 
   // Close menu when route changes
   useEffect(() => {
@@ -48,6 +47,27 @@ export function MobileMenu({
 
   const toggleMenu = () => {
     setIsOpen(!isOpen)
+  }
+
+  const handleDashboardClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    
+    // Check if email is verified
+    if (!isEmailVerified()) {
+      // Redirect to email verification page if email is not verified
+      router.push(`/verify-email?email=${encodeURIComponent(user?.email || '')}`)
+    } else {
+      // If email is verified, proceed to dashboard
+      router.push(dashboardLink)
+    }
+    
+    // Close the menu
+    toggleMenu()
+  }
+
+  const handleLogout = async () => {
+    await signOut()
+    toggleMenu()
   }
 
   return (
@@ -109,23 +129,19 @@ export function MobileMenu({
                 ))}
 
                 {/* Auth Links */}
-                {isAuthenticated ? (
+                {user ? (
                   <>
                     <li className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <Link
-                        href={dashboardLink}
+                      <button
+                        onClick={handleDashboardClick}
                         className="block text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
-                        onClick={toggleMenu}
                       >
                         Dashboard
-                      </Link>
+                      </button>
                     </li>
                     <li>
                       <button
-                        onClick={() => {
-                          if (onLogout) onLogout();
-                          toggleMenu();
-                        }}
+                        onClick={handleLogout}
                         className="block text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                       >
                         Sign Out

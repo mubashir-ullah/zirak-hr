@@ -261,10 +261,13 @@ export const sendPasswordResetEmail = async (to: string, resetToken: string, bas
 export const sendOTPVerificationEmail = async (to: string, otp: string): Promise<EmailResult> => {
   console.log(`Preparing OTP verification email for ${to} with code: ${otp}`);
   
+  // Base64 encoded logo image - embedded directly in the email
+  const logoBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAAAAXNSR0IArs4c6QAAIABJREFUeF7svQmgXVV1Pv7tM95733sZSAJJGJKQOZCEEMIQZgmKCg4FsdUqdfhRrFpn24paZ+2/WKs4VEGrtnWi1jqgOCFhJgEeIROBAElISAKEJG+40zln73/X3ufcd+7NffNNct9760R80zn77PPtfc+319prfUuAD0aAEWAEGAFGgBEY8QiIEf8E/ACMACPACDACjAAjACZ0ngSMACPACDACjMAoQIAJfRQMIj8CI8AIMAKMACPAhM5zgBFgBBgBRoARGAUIMKGPgkHkR2AEGAFGgBFgBJjQeQ4wAowAI8AIMAKjAAEm9FEwiPwIjAAjwAgwAowAEzrPAUaAEWAEGAFGYBQgwIQ+CgaRH4ERYAQYAUaAEWBC5znACDACjAAjwAiMAgSY0EfBIPIjMAKMACPACDACTOg8BxgBRoARYAQYgVGAABP6KBhEfgRGgBFgBBgBRoAJnecAI8AIMAKMACMwChBgQh8Fg8iPwAgwAowAI8AIMKHzHGAEGAFGgBFgBEYBAkzoo2AQ+REYAUaAEWAEGAEmdJ4DjAAjwAgwAozAKECACX0UDCI/AiPACDACjAAjwITOc4ARYAQYAUaAERgFCDChj4JB5EdgBBgBRoARYASY0HkOMAKMACPACDACowABJvRRMIj8CIwAI8AIMAKMABM6zwFGgBFgBBgBRmAUIMCEPgoGkR+BEWAEGAFGgBFgQuc5wAgwAowAI8AIjAIEmNBHwSDyIzACjAAjwAgwAkzoPAcYAUaAEWAEGIFRgAAT+igYRH4ERoARYAQYAUaACZ3nACPACDACjAAjMAoQYEIfBYPIj8AIMAKMACPACDCh8xxgBBgBRoARYARGAQJM6KNgEPkRGAFGgBFgBBgBJnSeA4wAI8AIMAKMwChAgAl9FAwiPwIjwAgwAowAI8CEznOAEWAEGAFGgBEYBQgwoY+CQeRHYAQYAUaAEWAEmNB5DjACjAAjwAgwAqMAgf8HUfrNwWt1Ka8AAAAASUVORK5CYII=';
+  
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
       <div style="text-align: center; margin-bottom: 20px;">
-        <img src="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/images/zirak-hr-logo.svg" alt="Zirak HR Logo" style="height: 50px;">
+        <img src="data:image/png;base64,${logoBase64}" alt="Zirak HR Logo" style="height: 80px; width: auto;">
       </div>
       <h2 style="color: #333; text-align: center;">Verify Your Email Address</h2>
       <p style="color: #666; line-height: 1.5;">Thank you for registering with Zirak HR. Please use the following verification code to complete your registration:</p>

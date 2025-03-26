@@ -1,6 +1,7 @@
 import supabase from './supabase';
 import { findUserByEmail, createUser, updateUser, UserData } from './supabaseDb';
 import bcrypt from 'bcryptjs';
+import { createClient } from '@supabase/supabase-js';
 
 // Authentication with email and password
 export const signUpWithEmail = async (
@@ -11,10 +12,22 @@ export const signUpWithEmail = async (
   needsRoleSelection: boolean = true
 ): Promise<{ user: UserData | null; error: string | null }> => {
   try {
-    // First, create the user in Supabase Auth
+    // First, create the user in Supabase Auth with auto-confirmation
+    // This prevents Supabase from sending confirmation emails
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        // Set emailRedirectTo to an empty string to prevent confirmation emails
+        emailRedirectTo: '',
+        // Set this to true to auto-confirm the user
+        data: {
+          name,
+          role,
+          needs_role_selection: needsRoleSelection,
+          email_confirmed: true
+        }
+      }
     });
 
     if (authError) {
@@ -23,6 +36,32 @@ export const signUpWithEmail = async (
 
     if (!authData.user) {
       return { user: null, error: 'Failed to create user' };
+    }
+
+    // Use admin API to immediately confirm the user's email
+    try {
+      // Get the admin client
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        }
+      );
+      
+      // Update the user to confirm their email
+      await supabaseAdmin.auth.admin.updateUserById(
+        authData.user.id,
+        { email_confirm: true }
+      );
+      
+      console.log('User email auto-confirmed via admin API');
+    } catch (confirmError) {
+      console.error('Error auto-confirming email via admin API:', confirmError);
+      // Continue with registration even if auto-confirmation fails
     }
 
     // Then, store additional user data in our users table
