@@ -7,8 +7,6 @@ import { usePathname } from 'next/navigation'
 import { cn } from '../lib/utils'
 import { MobileMenu } from './MobileMenu'
 import { ThemeToggle } from './theme-toggle'
-import { LanguageSelector } from './language-selector'
-import { useLanguage } from '../contexts/LanguageContext'
 import { useAuth } from '../contexts/AuthContext'
 
 interface NavbarProps {
@@ -25,7 +23,6 @@ const navLinks = [
 export function Navbar({ transparent = false, className }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
-  const { t } = useLanguage()
   const { user, signOut } = useAuth()
 
   const dashboardLink = user?.role === 'talent' ? '/talent/dashboard' : '/hiring-manager/dashboard'
@@ -92,67 +89,51 @@ export function Navbar({ transparent = false, className }: NavbarProps) {
         <div className="flex items-center space-x-4 relative z-10">
           {/* Desktop Auth Controls */}
           <div className="hidden md:flex items-center space-x-4">
-            <LanguageSelector />
             {user ? (
               <>
                 <Link
                   href={dashboardLink}
                   className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                 >
-                  {t('nav.dashboard')}
+                  Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                 >
-                  {t('nav.logout')}
+                  Sign Out
                 </button>
               </>
             ) : (
-              <div className="flex items-center space-x-4">
+              <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium px-4 py-2 rounded-full border-2 border-black dark:border-[#D6FF00] bg-[#D6FF00] text-black hover:bg-[#c1e600] hover:border-[#c1e600] transition-colors relative z-10"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                 >
-                  {t('auth.login')}
+                  Sign In
                 </Link>
                 <Link
                   href="/register"
-                  className="text-sm font-medium px-4 py-2 rounded-full border-2 border-black dark:border-[#D6FF00] bg-[#D6FF00] text-black hover:bg-[#c1e600] hover:border-[#c1e600] transition-colors relative z-10"
+                  className={cn(
+                    "px-4 py-2 rounded-full",
+                    "bg-[#D6FF00] hover:bg-[#c1e600]",
+                    "text-black font-medium text-sm",
+                    "border-2 border-black dark:border-[#D6FF00]",
+                    "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D6FF00]",
+                    "transform transition-all duration-200",
+                    "hover:scale-[1.02] active:scale-[0.98]"
+                  )}
                 >
-                  {t('auth.register')}
+                  Sign Up
                 </Link>
-              </div>
+              </>
             )}
             <ThemeToggle />
           </div>
 
-          {/* Mobile Auth Buttons and Menu */}
-          <div className="md:hidden flex items-center space-x-4">
-            {!user && (
-              <>
-                <Link
-                  href="/login"
-                  className="text-sm font-medium px-4 py-2 rounded-full border-2 border-black dark:border-[#D6FF00] bg-[#D6FF00] text-black hover:bg-[#c1e600] hover:border-[#c1e600] transition-colors relative z-10"
-                >
-                  {t('auth.login')}
-                </Link>
-                <Link
-                  href="/register"
-                  className="text-sm font-medium px-4 py-2 rounded-full border-2 border-black dark:border-[#D6FF00] bg-[#D6FF00] text-black hover:bg-[#c1e600] hover:border-[#c1e600] transition-colors relative z-10"
-                >
-                  {t('auth.register')}
-                </Link>
-              </>
-            )}
-            <div className="relative z-[60]">
-              <MobileMenu 
-                navLinks={navLinks} 
-                isAuthenticated={!!user}
-                dashboardLink={dashboardLink}
-                onLogout={handleLogout}
-              />
-            </div>
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <MobileMenu />
           </div>
         </div>
       </div>

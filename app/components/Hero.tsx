@@ -2,11 +2,8 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { useLanguage } from "../contexts/LanguageContext"
 
 export function Hero() {
-  const { t } = useLanguage()
-
   return (
     <div className="mt-4 md:mt-[-2rem] grid md:grid-cols-2 gap-8 items-start">
       <div className="text-center md:text-left md:pl-4">
@@ -83,7 +80,6 @@ export function Hero() {
           </svg>
           Connecting talent with opportunities across borders
         </p>
-
       </div>
 
       <div className="relative flex flex-col items-center mt-4 md:mt-0 pt-0">

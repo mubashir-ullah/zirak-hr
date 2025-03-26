@@ -1,75 +1,116 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { setUserRole } from '@/lib/supabaseAuth';
 import supabase from '@/lib/supabase';
+import { findUserByEmail, updateUserRole } from '@/lib/supabaseDb';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the current session to verify the user is authenticated
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session || !session.user) {
+    const body = await request.json();
+    const { role, userId, email } = body;
+
+    if (!role || (!userId && !email)) {
       return NextResponse.json(
-        { message: 'You must be logged in to set a role' },
-        { status: 401 }
+        { message: 'Role and either userId or email are required' },
+        { status: 400 }
       );
     }
-    
-    // Parse the request body
-    const body = await request.json();
-    const { role, userId } = body;
-    
-    console.log('Set role request:', { role, userId, sessionUser: session.user.email });
-    
-    // Validate the role
+
+    // Validate role
     if (role !== 'talent' && role !== 'hiring_manager') {
       return NextResponse.json(
-        { message: 'Invalid role. Role must be either "talent" or "hiring_manager"' },
+        { message: 'Invalid role. Must be either "talent" or "hiring_manager"' },
         { status: 400 }
       );
     }
-    
-    // Validate the userId
-    if (!userId) {
+
+    let userIdToUpdate = userId;
+
+    // If userId is not provided, try to find user by email
+    if (!userIdToUpdate && email) {
+      const user = await findUserByEmail(email);
+      if (user) {
+        userIdToUpdate = user.id;
+      } else {
+        // If user doesn't exist in our database yet, we need to find their ID
+        // We'll use the Supabase client to look up users by email
+        const { data, error } = await supabase
+          .from('auth.users')
+          .select('id')
+          .eq('email', email.toLowerCase())
+          .single();
+        
+        if (error || !data) {
+          console.error('Error finding user by email:', error);
+          return NextResponse.json(
+            { message: 'User not found' },
+            { status: 404 }
+          );
+        }
+        
+        userIdToUpdate = data.id;
+        
+        // Create user in our database
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: userIdToUpdate,
+            email: email.toLowerCase(),
+            role: role,
+            email_verified: true,
+            needs_profile_completion: true
+          });
+          
+        if (insertError) {
+          console.error('Error creating user in database:', insertError);
+          return NextResponse.json(
+            { message: 'Failed to create user record' },
+            { status: 500 }
+          );
+        }
+      }
+    }
+
+    if (!userIdToUpdate) {
       return NextResponse.json(
-        { message: 'User ID is required' },
+        { message: 'Could not determine user ID' },
         { status: 400 }
       );
     }
+
+    // Update user role in our database
+    const updated = await updateUserRole(userIdToUpdate, role);
     
-    // Update the user's role using Supabase
-    const { user, error } = await setUserRole(userId, role);
-    
-    if (error) {
-      console.error('Error setting user role:', error);
+    if (!updated) {
       return NextResponse.json(
-        { message: 'Failed to update user role', error },
+        { message: 'Failed to update user role' },
         { status: 500 }
       );
     }
-    
-    if (!user) {
-      return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
-      );
-    }
-    
-    // Return success response with updated user
-    return NextResponse.json({
-      message: 'Role updated successfully',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        needsRoleSelection: user.needs_role_selection
+
+    // Update user metadata in Supabase Auth
+    const { error: updateAuthError } = await supabase.auth.admin.updateUserById(
+      userIdToUpdate,
+      {
+        user_metadata: { role }
       }
-    });
-    
-  } catch (error) {
-    console.error('Error in set-role API:', error);
+    );
+
+    if (updateAuthError) {
+      console.error('Error updating user metadata:', updateAuthError);
+      // Continue anyway since we've updated our database
+    }
+
     return NextResponse.json(
-      { message: 'An error occurred while setting the role', error: String(error) },
+      { 
+        message: 'Role updated successfully',
+        role: role,
+        redirectTo: role === 'talent' ? '/dashboard/talent' : '/dashboard/hiring-manager'
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error setting role:', error);
+    return NextResponse.json(
+      { message: 'An unexpected error occurred' },
       { status: 500 }
     );
   }

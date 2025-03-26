@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useLanguage } from '../contexts/LanguageContext'
 
 export default function DashboardLayout({
   children,
@@ -12,7 +11,6 @@ export default function DashboardLayout({
 }) {
   const { session, status } = useAuth()
   const router = useRouter()
-  const { t } = useLanguage()
 
   // Check authentication status and redirect if needed
   useEffect(() => {
@@ -49,27 +47,24 @@ export default function DashboardLayout({
         console.log('Dashboard: Redirecting admin to admin dashboard')
         router.push('/dashboard/admin')
       } else {
-        console.log('Dashboard: No role defined, redirecting to role selection')
+        console.log('Dashboard: Unknown role, redirecting to role selection', userRole)
         router.push('/dashboard/role-selection')
       }
     }
-  }, [status, session, router])
+  }, [router, session, status])
 
   // Show loading state during authentication check
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-lg font-medium text-muted-foreground">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     )
   }
 
-  // Show unauthorized message if not authenticated
-  if (status === 'unauthenticated' || !session) {
-    return null // Will redirect in the useEffect
+  // If not authenticated or needs role selection, show nothing (will be redirected)
+  if (status === 'unauthenticated' || !session || session.user?.needsRoleSelection) {
+    return null
   }
 
   return <>{children}</>

@@ -6,12 +6,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
-import { useLanguage } from "../contexts/LanguageContext"
 import axios from 'axios'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
-  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -75,8 +73,8 @@ export default function ForgotPasswordPage() {
         
         <div className="max-w-md mx-auto mt-8 mb-16">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-serif mb-2">{t('Forgot Password')}</h1>
-            <p className="text-gray-600 dark:text-gray-400">{t('Enter your email address to receive a password reset link')}</p>
+            <h1 className="text-3xl font-serif mb-2">Forgot Password</h1>
+            <p className="text-gray-600 dark:text-gray-400">Enter your email address to receive a password reset link</p>
           </div>
 
           {error && (
@@ -99,90 +97,81 @@ export default function ForgotPasswordPage() {
               {devInfo.emailError && (
                 <div className="mb-3 p-2 bg-red-50 text-red-600 rounded">
                   <p className="font-semibold">Email Error:</p>
-                  <p className="text-xs break-all">{devInfo.emailError}</p>
-                  <p className="mt-1 text-xs">
-                    See <code className="bg-gray-100 px-1 py-0.5 rounded">email-setup-instructions.md</code> for email configuration help.
-                  </p>
+                  <p>{devInfo.emailError}</p>
                 </div>
               )}
               
               {devInfo.token && (
-                <p className="mb-2">
-                  <span className="font-semibold">Token:</span> {devInfo.token.substring(0, 16)}...
-                </p>
+                <div className="mb-2">
+                  <p className="font-semibold">Reset Token:</p>
+                  <p className="break-all">{devInfo.token}</p>
+                </div>
               )}
               
               {devInfo.resetUrl && (
-                <p className="mb-2">
-                  <span className="font-semibold">Reset URL:</span>{' '}
-                  <a 
-                    href={devInfo.resetUrl} 
-                    className="underline"
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    Click here to reset your password
-                  </a>
-                </p>
+                <div className="mb-2">
+                  <p className="font-semibold">Reset URL:</p>
+                  <p className="break-all">{devInfo.resetUrl}</p>
+                </div>
               )}
               
               {devInfo.previewUrl && (
-                <p className="mb-2">
-                  <span className="font-semibold">Email Preview:</span>{' '}
-                  <a 
+                <div>
+                  <p className="font-semibold">Email Preview URL:</p>
+                  <p className="break-all">{devInfo.previewUrl}</p>
+                  <Link 
                     href={devInfo.previewUrl} 
-                    className="underline"
                     target="_blank" 
-                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline mt-1 inline-block"
                   >
-                    View the email
-                  </a>
-                </p>
+                    Open Email Preview
+                  </Link>
+                </div>
               )}
-              
-              <p className="text-xs mt-3 italic">
-                Note: In production, this information will not be displayed.
-              </p>
             </div>
           )}
-
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                {t('Email address')}
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email Address
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
-                autoComplete="email"
-                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d6ff00] focus:border-transparent"
-                placeholder={t('Enter your email')}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
+                placeholder="your@email.com"
+                disabled={loading}
+                required
               />
             </div>
-
+            
             <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2 px-4 border-2 border-black dark:border-transparent rounded-lg shadow-sm text-sm font-medium text-black bg-[#d6ff00] hover:bg-[#b3e600] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#d6ff00] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? t('Sending...') : t('Send Reset Link')}
+                {loading ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </span>
+                ) : 'Send Reset Link'}
               </button>
             </div>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {t('Remember your password?')}{' '}
-                <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-                  {t('Sign in')}
-                </Link>
-              </p>
-            </div>
           </form>
+          
+          <div className="mt-8 text-center">
+            <Link href="/login" className="text-primary hover:text-primary-dark">
+              Return to Login
+            </Link>
+          </div>
         </div>
       </div>
       <Footer />

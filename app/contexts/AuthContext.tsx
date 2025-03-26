@@ -3,10 +3,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { User, AuthError } from '@supabase/supabase-js'
+import { User, AuthError, Session } from '@supabase/supabase-js'
 
 interface AuthContextType {
   user: User | null
+  session: Session | null
   status: 'authenticated' | 'unauthenticated' | 'loading'
   login: (provider: 'google' | 'github' | 'linkedin' | 'apple') => Promise<void>
   logout: () => Promise<void>
@@ -15,6 +16,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  session: null,
   status: 'loading',
   login: async () => {},
   logout: async () => {},
@@ -25,20 +27,23 @@ export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [status, setStatus] = useState<'authenticated' | 'unauthenticated' | 'loading'>('loading')
   const router = useRouter()
   const supabase = createClientComponentClient()
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      setStatus(session?.user ? 'authenticated' : 'unauthenticated')
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      setUser(currentSession?.user ?? null)
+      setSession(currentSession)
+      setStatus(currentSession?.user ? 'authenticated' : 'unauthenticated')
     })
 
     // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setStatus(session?.user ? 'authenticated' : 'unauthenticated')
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setUser(currentSession?.user ?? null)
+      setSession(currentSession)
+      setStatus(currentSession?.user ? 'authenticated' : 'unauthenticated')
     })
 
     return () => subscription.unsubscribe()
@@ -72,10 +77,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshSession = async () => {
     try {
-      const { data: { session }, error } = await supabase.auth.refreshSession()
+      const { data: { session: currentSession }, error } = await supabase.auth.refreshSession()
       if (error) throw error
-      setUser(session?.user ?? null)
-      setStatus(session?.user ? 'authenticated' : 'unauthenticated')
+      setUser(currentSession?.user ?? null)
+      setSession(currentSession)
+      setStatus(currentSession?.user ? 'authenticated' : 'unauthenticated')
     } catch (error) {
       console.error('Error refreshing session:', error)
       throw error
@@ -83,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, status, login, logout, refreshSession }}>
+    <AuthContext.Provider value={{ user, session, status, login, logout, refreshSession }}>
       {children}
     </AuthContext.Provider>
   )

@@ -8,12 +8,10 @@ import { SiApple } from 'react-icons/si'
 import { linkSocialProvider } from '@/lib/supabaseAuth'
 import supabase from '@/lib/supabase'
 import { findUserByEmail } from '@/lib/supabaseDb'
-import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 
 const SettingsContent = () => {
   const router = useRouter()
-  const { t } = useLanguage()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null)
@@ -99,159 +97,178 @@ const SettingsContent = () => {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d6ff00]"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
     )
   }
 
   return (
-    <DashboardLayout>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">{t('Account Settings')}</h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
+      
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
         
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">{t('Profile Information')}</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {user && (
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('Name')}
+                Email
               </label>
-              <p className="text-gray-900 dark:text-gray-100">{user?.name}</p>
+              <div className="text-gray-900 dark:text-gray-100 p-2 bg-gray-100 dark:bg-gray-700 rounded">
+                {user.email}
+              </div>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('Email')}
+                Role
               </label>
-              <p className="text-gray-900 dark:text-gray-100">{user?.email}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('Role')}
-              </label>
-              <p className="text-gray-900 dark:text-gray-100 capitalize">
-                {user?.role?.replace('_', ' ')}
-              </p>
+              <div className="text-gray-900 dark:text-gray-100 p-2 bg-gray-100 dark:bg-gray-700 rounded capitalize">
+                {user.role === 'hiring_manager' ? 'Hiring Manager' : user.role}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+      </div>
+      
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Connected Accounts</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          Connect your account with these services to enable single sign-on.
+        </p>
         
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">{t('Linked Accounts')}</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {t('Link your account with these services to enable social login.')}
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center">
+              <FaGoogle className="text-2xl text-red-500 mr-3" />
+              <span>Google</span>
+            </div>
             <button
               onClick={() => handleLinkAccount('google')}
-              disabled={linkingProvider !== null || linkedAccounts.includes('google')}
-              className={`flex items-center justify-between px-4 py-3 border rounded-lg ${
+              disabled={linkingProvider === 'google' || linkedAccounts.includes('google')}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
                 linkedAccounts.includes('google')
-                  ? 'bg-gray-100 dark:bg-gray-700 border-green-500 dark:border-green-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                  : 'bg-primary text-white hover:bg-primary-dark'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              <div className="flex items-center">
-                <FaGoogle className="w-5 h-5 text-red-500 mr-3" />
-                <span>{t('Google')}</span>
-              </div>
-              <span className="text-sm">
-                {linkedAccounts.includes('google')
-                  ? t('Linked')
-                  : linkingProvider === 'google'
-                  ? t('Linking...')
-                  : t('Link')}
-              </span>
-            </button>
-            
-            <button
-              onClick={() => handleLinkAccount('github')}
-              disabled={linkingProvider !== null || linkedAccounts.includes('github')}
-              className={`flex items-center justify-between px-4 py-3 border rounded-lg ${
-                linkedAccounts.includes('github')
-                  ? 'bg-gray-100 dark:bg-gray-700 border-green-500 dark:border-green-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}
-            >
-              <div className="flex items-center">
-                <FaGithub className="w-5 h-5 mr-3" />
-                <span>{t('GitHub')}</span>
-              </div>
-              <span className="text-sm">
-                {linkedAccounts.includes('github')
-                  ? t('Linked')
-                  : linkingProvider === 'github'
-                  ? t('Linking...')
-                  : t('Link')}
-              </span>
-            </button>
-            
-            <button
-              onClick={() => handleLinkAccount('linkedin')}
-              disabled={linkingProvider !== null || linkedAccounts.includes('linkedin')}
-              className={`flex items-center justify-between px-4 py-3 border rounded-lg ${
-                linkedAccounts.includes('linkedin')
-                  ? 'bg-gray-100 dark:bg-gray-700 border-green-500 dark:border-green-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}
-            >
-              <div className="flex items-center">
-                <FaLinkedin className="w-5 h-5 text-blue-600 mr-3" />
-                <span>{t('LinkedIn')}</span>
-              </div>
-              <span className="text-sm">
-                {linkedAccounts.includes('linkedin')
-                  ? t('Linked')
-                  : linkingProvider === 'linkedin'
-                  ? t('Linking...')
-                  : t('Link')}
-              </span>
-            </button>
-            
-            <button
-              onClick={() => handleLinkAccount('apple')}
-              disabled={linkingProvider !== null || linkedAccounts.includes('apple')}
-              className={`flex items-center justify-between px-4 py-3 border rounded-lg ${
-                linkedAccounts.includes('apple')
-                  ? 'bg-gray-100 dark:bg-gray-700 border-green-500 dark:border-green-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}
-            >
-              <div className="flex items-center">
-                <SiApple className="w-5 h-5 mr-3" />
-                <span>{t('Apple')}</span>
-              </div>
-              <span className="text-sm">
-                {linkedAccounts.includes('apple')
-                  ? t('Linked')
-                  : linkingProvider === 'apple'
-                  ? t('Linking...')
-                  : t('Link')}
-              </span>
+              {linkingProvider === 'google' ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Connecting...
+                </span>
+              ) : linkedAccounts.includes('google') ? (
+                'Connected'
+              ) : (
+                'Connect'
+              )}
             </button>
           </div>
           
-          <div className="mt-6 text-sm text-gray-600 dark:text-gray-400">
-            <p>
-              {t('Linking accounts allows you to sign in using any of these providers.')}
-            </p>
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center">
+              <FaGithub className="text-2xl text-gray-800 dark:text-white mr-3" />
+              <span>GitHub</span>
+            </div>
+            <button
+              onClick={() => handleLinkAccount('github')}
+              disabled={linkingProvider === 'github' || linkedAccounts.includes('github')}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                linkedAccounts.includes('github')
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                  : 'bg-primary text-white hover:bg-primary-dark'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {linkingProvider === 'github' ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Connecting...
+                </span>
+              ) : linkedAccounts.includes('github') ? (
+                'Connected'
+              ) : (
+                'Connect'
+              )}
+            </button>
+          </div>
+          
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center">
+              <FaLinkedin className="text-2xl text-blue-600 mr-3" />
+              <span>LinkedIn</span>
+            </div>
+            <button
+              onClick={() => handleLinkAccount('linkedin')}
+              disabled={linkingProvider === 'linkedin' || linkedAccounts.includes('linkedin')}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                linkedAccounts.includes('linkedin')
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                  : 'bg-primary text-white hover:bg-primary-dark'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {linkingProvider === 'linkedin' ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Connecting...
+                </span>
+              ) : linkedAccounts.includes('linkedin') ? (
+                'Connected'
+              ) : (
+                'Connect'
+              )}
+            </button>
+          </div>
+          
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center">
+              <SiApple className="text-2xl text-gray-800 dark:text-white mr-3" />
+              <span>Apple</span>
+            </div>
+            <button
+              onClick={() => handleLinkAccount('apple')}
+              disabled={linkingProvider === 'apple' || linkedAccounts.includes('apple')}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                linkedAccounts.includes('apple')
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                  : 'bg-primary text-white hover:bg-primary-dark'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {linkingProvider === 'apple' ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Connecting...
+                </span>
+              ) : linkedAccounts.includes('apple') ? (
+                'Connected'
+              ) : (
+                'Connect'
+              )}
+            </button>
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   )
 }
 
 export default function SettingsPage() {
   return (
-    <LanguageProvider>
+    <DashboardLayout>
       <SettingsContent />
-    </LanguageProvider>
+    </DashboardLayout>
   )
 }

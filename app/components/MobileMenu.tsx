@@ -5,21 +5,29 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { useLanguage } from '../contexts/LanguageContext'
 import { ThemeToggle } from './theme-toggle'
-import { LanguageSelector } from './language-selector'
 
 interface MobileMenuProps {
-  navLinks: Array<{ href: string; label: string }>
-  isAuthenticated: boolean
-  dashboardLink: string
-  onLogout: () => void
+  navLinks?: Array<{ href: string; label: string }>
+  isAuthenticated?: boolean
+  dashboardLink?: string
+  onLogout?: () => void
 }
 
-export function MobileMenu({ navLinks, isAuthenticated, dashboardLink, onLogout }: MobileMenuProps) {
+const defaultNavLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/features', label: 'Features' },
+  { href: '/about', label: 'About Us' },
+]
+
+export function MobileMenu({ 
+  navLinks = defaultNavLinks, 
+  isAuthenticated = false, 
+  dashboardLink = '/dashboard', 
+  onLogout 
+}: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
-  const { t } = useLanguage()
 
   // Close menu when route changes
   useEffect(() => {
@@ -70,7 +78,6 @@ export function MobileMenu({ navLinks, isAuthenticated, dashboardLink, onLogout 
             <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm border-b p-4">
               <div className="flex items-center justify-between">
                 <ThemeToggle />
-                <LanguageSelector mobile />
                 <button
                   onClick={toggleMenu}
                   className="p-2 text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
@@ -101,31 +108,49 @@ export function MobileMenu({ navLinks, isAuthenticated, dashboardLink, onLogout 
                   </li>
                 ))}
 
-                {/* Auth Section */}
-                {isAuthenticated && (
+                {/* Auth Links */}
+                {isAuthenticated ? (
                   <>
-                    <li>
-                      <div className="h-px bg-gray-200 dark:bg-gray-800 my-6" />
-                    </li>
-                    <li>
+                    <li className="pt-4 border-t border-gray-200 dark:border-gray-700">
                       <Link
                         href={dashboardLink}
                         className="block text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                         onClick={toggleMenu}
                       >
-                        {t('nav.dashboard')}
+                        Dashboard
                       </Link>
                     </li>
                     <li>
                       <button
                         onClick={() => {
-                          onLogout()
-                          toggleMenu()
+                          if (onLogout) onLogout();
+                          toggleMenu();
                         }}
-                        className="block w-full text-left text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                        className="block text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
                       >
-                        {t('nav.logout')}
+                        Sign Out
                       </button>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <Link
+                        href="/login"
+                        className="block text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                        onClick={toggleMenu}
+                      >
+                        Sign In
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/register"
+                        className="block text-lg font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors"
+                        onClick={toggleMenu}
+                      >
+                        Sign Up
+                      </Link>
                     </li>
                   </>
                 )}

@@ -3,12 +3,9 @@
 import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import Link from "next/link"
-import { LanguageSelector } from "./language-selector"
-import { useLanguage } from "@/app/contexts/LanguageContext"
 
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
-  const { t } = useLanguage()
 
   return (
     <div>
@@ -25,18 +22,14 @@ export function MobileMenu() {
           <div className="container px-4 py-6 flex flex-col h-full">
             <nav className="flex flex-col space-y-6 text-center">
               <Link href="/" className="font-medium text-lg py-2" onClick={() => setIsOpen(false)}>
-                {t('nav.home')}
+                Home
               </Link>
               <Link href="/features" className="font-medium text-lg py-2" onClick={() => setIsOpen(false)}>
-                {t('nav.features')}
+                Features
               </Link>
               <Link href="/about" className="font-medium text-lg py-2" onClick={() => setIsOpen(false)}>
-                {t('nav.about')}
+                About
               </Link>
-
-              <div className="flex justify-center mt-4">
-                <LanguageSelector />
-              </div>
             </nav>
           </div>
         </div>
@@ -44,4 +37,3 @@ export function MobileMenu() {
     </div>
   )
 }
-

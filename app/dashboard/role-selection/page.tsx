@@ -1,41 +1,78 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Image from 'next/image';
-import { useTheme } from 'next-themes';
 
 export default function RoleSelectionPage() {
   const router = useRouter();
-  const { data: session, update, status } = useSession();
-  const { theme } = useTheme();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
+  const [selectedRole, setSelectedRole] = useState<'talent' | 'hiring_manager' | ''>('');
 
-  // Debug session state
+  const supabase = createClientComponentClient();
+
+  // Get user session and email
   useEffect(() => {
-    console.log('Role Selection Page - Session Status:', status);
-    console.log('Role Selection Page - Session Data:', session);
-  }, [session, status]);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // If no session, check if email was passed in URL params (from email verification)
+        const emailParam = searchParams.get('email');
+        if (emailParam) {
+          setEmail(decodeURIComponent(emailParam));
+        } else {
+          // No session and no email param, redirect to login
+          router.push('/login');
+        }
+      } else {
+        // Session exists, set email and user ID
+        setEmail(session.user.email || '');
+        setUserId(session.user.id);
+      }
+    };
+    
+    checkSession();
+  }, [router, searchParams, supabase.auth]);
 
-  const selectRole = async (role: 'talent' | 'hiring_manager') => {
+  // Debug info
+  useEffect(() => {
+    console.log('Role Selection Page - Email:', email);
+    console.log('Role Selection Page - User ID:', userId);
+  }, [email, userId]);
+
+  const handleRoleSelection = (role: 'talent' | 'hiring_manager') => {
+    setSelectedRole(role);
+    setError(''); // Clear any previous errors
+  };
+
+  const submitRoleSelection = async () => {
+    // Validate role selection
+    if (!selectedRole) {
+      setError('Please select your role to continue');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
     try {
-      console.log('Selecting role:', role);
-      console.log('Current session:', session);
-      
-      if (!session?.user?.id) {
-        throw new Error('User ID not found in session. Please try logging in again.');
-      }
+      console.log('Selecting role:', selectedRole);
       
       // First, update the role in the database
       const response = await fetch('/api/auth/set-role', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role, userId: session.user.id })
+        body: JSON.stringify({ 
+          role: selectedRole, 
+          userId: userId || null,
+          email: email
+        })
       });
       
       if (!response.ok) {
@@ -45,97 +82,110 @@ export default function RoleSelectionPage() {
 
       console.log('Role updated in database successfully');
       
-      // Sign out and redirect to login with a special parameter
-      // This forces a complete session refresh
-      const dashboardUrl = role === 'talent' ? '/dashboard/talent' : '/dashboard/hiring-manager';
-      
-      // Store the target URL in localStorage for retrieval after login
-      localStorage.setItem('redirectAfterLogin', dashboardUrl);
-      
-      // Force sign out and redirect to login
-      await signOut({ 
-        redirect: true,
-        callbackUrl: '/login?roleSelected=true'
-      });
-      
+      // Redirect to the appropriate dashboard
+      const dashboardUrl = selectedRole === 'talent' ? '/dashboard/talent' : '/dashboard/hiring-manager';
+      router.push(dashboardUrl);
     } catch (error) {
-      console.error('Error setting role:', error);
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      console.error('Error selecting role:', error);
+      setError(error instanceof Error ? error.message : 'Failed to set role');
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
         <div className="text-center">
-          <div className="flex justify-center">
-            <Image
-              src="/logo.png"
-              alt="Zirak HR Logo"
-              width={80}
-              height={80}
-              className={`h-20 w-auto ${theme === 'dark' ? 'filter brightness-[1.7] hue-rotate-[85deg] saturate-[1.5]' : ''}`}
-            />
-          </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            How will you use Zirak HR?
+          <Image
+            src="/logo.png"
+            alt="Zirak HR Logo"
+            width={80}
+            height={80}
+            className="mx-auto"
+          />
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+            Choose Your Role
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Select your role to get started
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Select how you want to use Zirak HR
           </p>
         </div>
-        
+
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
           </div>
         )}
-        
-        <div className="mt-8 space-y-6">
-          <div className="grid grid-cols-1 gap-6">
-            <button
-              onClick={() => selectRole('talent')}
-              disabled={isSubmitting}
-              className="group relative w-full flex flex-col items-center py-6 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+
+        <div className="grid gap-4">
+          <button
+            onClick={() => handleRoleSelection('talent')}
+            disabled={isSubmitting}
+            className={`relative flex flex-col items-center p-6 border-2 border-primary/20 hover:border-primary rounded-lg transition-colors group ${selectedRole === 'talent' ? 'bg-primary/10' : ''}`}
+          >
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+              <svg
+                className="w-8 h-8 text-primary"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
               </svg>
-              <span className="text-lg font-semibold">I'm looking for a job</span>
-              <p className="mt-2 text-sm text-indigo-200">
-                Access job listings, build your profile, and submit applications
-              </p>
-            </button>
-            
-            <button
-              onClick={() => selectRole('hiring_manager')}
-              disabled={isSubmitting}
-              className="group relative w-full flex flex-col items-center py-6 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">I am Talent</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
+              Looking for job opportunities and career growth
+            </p>
+          </button>
+
+          <button
+            onClick={() => handleRoleSelection('hiring_manager')}
+            disabled={isSubmitting}
+            className={`relative flex flex-col items-center p-6 border-2 border-primary/20 hover:border-primary rounded-lg transition-colors group ${selectedRole === 'hiring_manager' ? 'bg-primary/10' : ''}`}
+          >
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+              <svg
+                className="w-8 h-8 text-primary"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
               </svg>
-              <span className="text-lg font-semibold">I'm hiring talent</span>
-              <p className="mt-2 text-sm text-green-200">
-                Post jobs, review applications, and find the perfect candidates
-              </p>
-            </button>
-          </div>
-          
-          <div className="text-center text-xs text-gray-500 mt-4">
-            <p>You can change your role later in settings if needed</p>
-          </div>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">I am a Hiring Manager</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
+              Looking to hire talent for my organization
+            </p>
+          </button>
         </div>
+
+        <button
+          onClick={submitRoleSelection}
+          disabled={isSubmitting}
+          className="mt-6 w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded"
+        >
+          Submit
+        </button>
+
+        {isSubmitting && (
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            Processing your selection...
+          </div>
+        )}
       </div>
     </div>
   );

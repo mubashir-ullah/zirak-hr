@@ -87,7 +87,19 @@ const createTransporter = async () => {
 export const sendEmail = async ({ to, subject, html }: EmailOptions): Promise<EmailResult> => {
   try {
     console.log('Sending email to:', to);
+    console.log('Email subject:', subject);
+    
+    // Log environment variables (without sensitive values)
+    console.log('Email environment check:');
+    console.log('- EMAIL_HOST configured:', !!process.env.EMAIL_HOST);
+    console.log('- EMAIL_USER configured:', !!process.env.EMAIL_USER);
+    console.log('- EMAIL_PASSWORD configured:', !!process.env.EMAIL_PASSWORD);
+    console.log('- EMAIL_FROM configured:', !!process.env.EMAIL_FROM);
+    console.log('- NODE_ENV:', process.env.NODE_ENV);
+    
     const transporter = await createTransporter();
+    
+    console.log('Email transporter created successfully');
     
     const info = await transporter.sendMail({
       from: `"Zirak HR" <${process.env.EMAIL_FROM || 'noreply@zirak-hr.com'}>`,
@@ -116,6 +128,13 @@ export const sendEmail = async ({ to, subject, html }: EmailOptions): Promise<Em
   } catch (error) {
     console.error('Error sending email:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error details:', errorMessage);
+    
+    // Try to provide more context about the error
+    if (error instanceof Error && 'code' in error) {
+      console.error('Error code:', (error as any).code);
+    }
+    
     return { 
       success: false, 
       message: `Failed to send email: ${errorMessage}`
@@ -179,5 +198,31 @@ export const sendPasswordResetEmail = async (to: string, resetToken: string, bas
     to,
     subject: 'Reset Your Zirak HR Password',
     html,
+  });
+};
+
+// Send OTP verification email
+export const sendOTPVerificationEmail = async (to: string, otp: string): Promise<EmailResult> => {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="${process.env.NEXT_PUBLIC_APP_URL}/images/logo.svg" alt="Zirak HR Logo" style="height: 50px;">
+      </div>
+      <h2 style="color: #333; text-align: center;">Verify Your Email Address</h2>
+      <p style="color: #666; line-height: 1.5;">Thank you for registering with Zirak HR. Please use the following verification code to complete your registration:</p>
+      <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 5px;">
+        ${otp}
+      </div>
+      <p style="color: #666; line-height: 1.5;">This code will expire in 10 minutes. If you did not request this verification, please ignore this email.</p>
+      <div style="text-align: center; margin-top: 30px; color: #999; font-size: 12px;">
+        <p> ${new Date().getFullYear()} Zirak HR. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({
+    to,
+    subject: 'Verify Your Email - Zirak HR',
+    html
   });
 };

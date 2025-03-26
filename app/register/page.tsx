@@ -5,17 +5,15 @@ import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
 import Image from "next/image"
 import Link from "next/link"
-import { useLanguage } from "../contexts/LanguageContext"
 import { useRouter } from 'next/navigation'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
-import { SocialLoginButtons } from '@/components/auth/social-login-buttons'
+import { SocialLoginButtons } from '@/app/components/auth/social-login-buttons'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '@/lib/utils'
 
 export default function Register() {
   const router = useRouter()
-  const { t } = useLanguage()
   const { login } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -26,8 +24,7 @@ export default function Register() {
     email: '',
     password: '',
     confirmPassword: '',
-    organization: '',
-    position: ''
+    role: '' // Default to empty string
   })
 
   const supabase = createClientComponentClient()
@@ -52,51 +49,107 @@ export default function Register() {
       return
     }
 
+    // Validate role selection
+    if (!formData.role) {
+      setError('Please select your role')
+      setLoading(false)
+      return
+    }
+
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      // Register the user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             name: formData.name,
-            organization: formData.organization,
-            position: formData.position,
-            needs_role_selection: true
-          }
+          },
         }
       })
 
-      if (signUpError) throw signUpError
+      if (authError) {
+        throw new Error(authError.message)
+      }
 
-      // Create profile in profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: data.user?.id,
-            name: formData.name,
-            email: formData.email,
-            organization: formData.organization,
-            position: formData.position
-          }
-        ])
+      if (!authData.user) {
+        throw new Error('Failed to create user account')
+      }
 
-      if (profileError) throw profileError
+      // Create user in our database
+      const createUserResponse = await fetch('/api/auth/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: authData.user.id,
+          email: formData.email,
+          name: formData.name,
+          role: formData.role,
+        }),
+      });
 
-      router.push('/dashboard/role-selection')
-    } catch (error: any) {
-      setError(error.message || 'An error occurred during registration')
-    } finally {
+      const createUserData = await createUserResponse.json();
+
+      if (!createUserResponse.ok) {
+        throw new Error(createUserData.message || 'Failed to create user record');
+      }
+
+      // Generate and send OTP for email verification
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          name: formData.name,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send verification code')
+      }
+
+      // Redirect to email verification page
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`)
+    } catch (err) {
+      console.error('Registration error:', err)
+      setError(err instanceof Error ? err.message : 'Registration failed')
       setLoading(false)
     }
   }
 
   const handleSocialLogin = async (provider: 'google' | 'github' | 'linkedin' | 'apple') => {
     try {
+      setLoading(true)
       setError('')
-      await login(provider)
-    } catch (error: any) {
-      setError(error.message || 'An error occurred during social login')
+
+      // Sign in with Supabase OAuth
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback`,
+        },
+      })
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      // If successful, Supabase will redirect to the URL specified in redirectTo
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error(`Failed to get redirect URL from ${provider}`)
+      }
+    } catch (err) {
+      console.error(`Error signing in with ${provider}:`, err)
+      setError(err instanceof Error ? err.message : `Failed to sign in with ${provider}`)
+      setLoading(false)
     }
   }
 
@@ -116,10 +169,10 @@ export default function Register() {
                 />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors">
-                {t('auth.register')}
+                Register
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
-                {t('auth.registerDescription')}
+                Create an account to get started
               </p>
             </div>
 
@@ -133,7 +186,7 @@ export default function Register() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">
-                    {t('auth.fullName')}
+                    Full Name
                   </label>
                   <input
                     type="text"
@@ -151,13 +204,13 @@ export default function Register() {
                       "focus:ring-2 focus:ring-[#D6FF00] focus:border-transparent",
                       "transition-all duration-200"
                     )}
-                    placeholder={t('auth.enterFullName')}
+                    placeholder="Enter your full name"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">
-                    {t('auth.email')}
+                    Email
                   </label>
                   <input
                     type="email"
@@ -175,61 +228,13 @@ export default function Register() {
                       "focus:ring-2 focus:ring-[#D6FF00] focus:border-transparent",
                       "transition-all duration-200"
                     )}
-                    placeholder={t('auth.enterEmail')}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label htmlFor="organization" className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">
-                    {t('auth.organization')}
-                  </label>
-                  <input
-                    type="text"
-                    id="organization"
-                    name="organization"
-                    value={formData.organization}
-                    onChange={handleInputChange}
-                    required
-                    className={cn(
-                      "w-full px-4 py-2 rounded-lg border",
-                      "bg-white dark:bg-gray-800",
-                      "border-gray-300 dark:border-gray-600",
-                      "text-gray-900 dark:text-white",
-                      "placeholder-gray-500 dark:placeholder-gray-400",
-                      "focus:ring-2 focus:ring-[#D6FF00] focus:border-transparent",
-                      "transition-all duration-200"
-                    )}
-                    placeholder={t('auth.enterOrganization')}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label htmlFor="position" className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">
-                    {t('auth.position')}
-                  </label>
-                  <input
-                    type="text"
-                    id="position"
-                    name="position"
-                    value={formData.position}
-                    onChange={handleInputChange}
-                    required
-                    className={cn(
-                      "w-full px-4 py-2 rounded-lg border",
-                      "bg-white dark:bg-gray-800",
-                      "border-gray-300 dark:border-gray-600",
-                      "text-gray-900 dark:text-white",
-                      "placeholder-gray-500 dark:placeholder-gray-400",
-                      "focus:ring-2 focus:ring-[#D6FF00] focus:border-transparent",
-                      "transition-all duration-200"
-                    )}
-                    placeholder={t('auth.enterPosition')}
+                    placeholder="Enter your email"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">
-                    {t('auth.password')}
+                    Password
                   </label>
                   <div className="relative">
                     <input
@@ -248,7 +253,7 @@ export default function Register() {
                         "focus:ring-2 focus:ring-[#D6FF00] focus:border-transparent",
                         "pr-10 transition-all duration-200"
                       )}
-                      placeholder={t('auth.enterPassword')}
+                      placeholder="Enter your password"
                     />
                     <button
                       type="button"
@@ -262,7 +267,7 @@ export default function Register() {
 
                 <div className="space-y-1">
                   <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">
-                    {t('auth.confirmPassword')}
+                    Confirm Password
                   </label>
                   <div className="relative">
                     <input
@@ -281,7 +286,7 @@ export default function Register() {
                         "focus:ring-2 focus:ring-[#D6FF00] focus:border-transparent",
                         "pr-10 transition-all duration-200"
                       )}
-                      placeholder={t('auth.confirmPassword')}
+                      placeholder="Confirm your password"
                     />
                     <button
                       type="button"
@@ -291,6 +296,32 @@ export default function Register() {
                       {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                     </button>
                   </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors">
+                    Select Your Role
+                  </label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    required
+                    className={cn(
+                      "w-full px-4 py-2 rounded-lg border",
+                      "bg-white dark:bg-gray-800",
+                      "border-gray-300 dark:border-gray-600",
+                      "text-gray-900 dark:text-white",
+                      "placeholder-gray-500 dark:placeholder-gray-400",
+                      "focus:ring-2 focus:ring-[#D6FF00] focus:border-transparent",
+                      "transition-all duration-200"
+                    )}
+                  >
+                    <option value="">Select a role</option>
+                    <option value="talent">I am Talent</option>
+                    <option value="hiring_manager">I am a Hiring Manager</option>
+                  </select>
                 </div>
               </div>
 
@@ -308,7 +339,7 @@ export default function Register() {
                   "hover:scale-[1.02] active:scale-[0.98]"
                 )}
               >
-                {loading ? t('auth.registering') : t('auth.register')}
+                {loading ? 'Registering...' : 'Register'}
               </button>
             </form>
 
@@ -318,7 +349,7 @@ export default function Register() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 transition-colors">
-                  {t('auth.orContinueWith')}
+                  or continue with
                 </span>
               </div>
             </div>
@@ -327,16 +358,16 @@ export default function Register() {
 
             <div className="mt-6 text-center text-sm">
               <span className="text-gray-600 dark:text-gray-400">
-                {t('auth.alreadyHaveAccount')}
+                Already have an account?
               </span>{' '}
               <Link
                 href="/login"
                 className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
               >
-                {t('auth.login')}
+                Login
               </Link>
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {t('auth.registerMinute')}
+                It only takes a minute to register
               </p>
             </div>
           </div>

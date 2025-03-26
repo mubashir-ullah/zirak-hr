@@ -8,8 +8,7 @@ import Image from 'next/image'
 import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
-import { SocialLoginButtons } from '@/components/auth/social-login-buttons'
-import { useLanguage } from "../contexts/LanguageContext"
+import { SocialLoginButtons } from '@/app/components/auth/social-login-buttons'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '@/lib/utils'
@@ -18,7 +17,6 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { theme } = useTheme()
-  const { t } = useLanguage()
   const { login } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -76,40 +74,91 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       })
 
-      if (error) throw error
-
-      // Get user profile to check role selection status
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('needs_role_selection')
-        .eq('id', data.user.id)
-        .single()
-
-      if (profileError) throw profileError
-
-      // Redirect based on role selection status
-      if (profile?.needs_role_selection) {
-        router.push('/dashboard/role-selection')
-      } else {
-        router.push('/dashboard')
+      if (authError) {
+        throw new Error(authError.message)
       }
-    } catch (error: any) {
-      setError(error.message || 'Failed to log in')
+
+      if (!authData.user) {
+        throw new Error('Failed to sign in')
+      }
+
+      // Get user role and redirect information
+      const response = await fetch('/api/auth/get-user-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // User doesn't exist in our database yet
+          router.push('/register')
+          return
+        }
+        throw new Error(data.message || 'Failed to get user information')
+      }
+
+      // Handle different user states
+      if (data.needsEmailVerification) {
+        // Redirect to email verification page
+        router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`)
+        return
+      }
+
+      if (data.needsRoleSelection) {
+        // Redirect to role selection page
+        router.push(`/dashboard/role-selection?email=${encodeURIComponent(formData.email)}`)
+        return
+      }
+
+      // Redirect to the appropriate dashboard
+      router.push(data.redirectUrl)
+    } catch (err) {
+      console.error('Login error:', err)
+      setError(err instanceof Error ? err.message : 'Login failed')
       setLoading(false)
     }
   }
 
   const handleSocialLogin = async (provider: 'google' | 'github' | 'linkedin' | 'apple') => {
     try {
+      setLoading(true)
       setError('')
-      await login(provider)
-    } catch (error: any) {
-      setError(error.message || 'Failed to log in with social provider')
+
+      // Sign in with Supabase OAuth
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback`,
+        },
+      })
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      // If successful, Supabase will redirect to the URL specified in redirectTo
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error(`Failed to get redirect URL from ${provider}`)
+      }
+    } catch (err) {
+      console.error(`Error signing in with ${provider}:`, err)
+      setError(err instanceof Error ? err.message : `Failed to sign in with ${provider}`)
+      setLoading(false)
     }
   }
 
@@ -129,10 +178,10 @@ export default function LoginPage() {
                 />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white transition-colors">
-                {t('auth.login')}
+                Login
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
-                {t('auth.loginDescription')}
+                Sign in to your account to continue
               </p>
             </div>
 
@@ -148,134 +197,112 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
-                    {t('auth.email')}
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className={cn(
-                      "w-full px-4 py-2 rounded-lg border",
-                      "bg-white dark:bg-gray-800",
-                      "border-gray-300 dark:border-gray-600",
-                      "text-gray-900 dark:text-white",
-                      "placeholder-gray-500 dark:placeholder-gray-400",
-                      "focus:ring-2 focus:ring-[#D6FF00] focus:border-transparent",
-                      "transition-all duration-200"
-                    )}
-                    placeholder={t('auth.enterEmail')}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
-                    {t('auth.password')}
-                  </label>
-                  <div className="relative">
+            {redirecting ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400">Redirecting to your dashboard...</p>
+              </div>
+            ) : (
+              <>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Email
+                    </label>
                     <input
-                      type={showPassword ? "text" : "password"}
-                      id="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
                       required
-                      className={cn(
-                        "w-full px-4 py-2 rounded-lg border",
-                        "bg-white dark:bg-gray-800",
-                        "border-gray-300 dark:border-gray-600",
-                        "text-gray-900 dark:text-white",
-                        "placeholder-gray-500 dark:placeholder-gray-400",
-                        "focus:ring-2 focus:ring-[#D6FF00] focus:border-transparent",
-                        "pr-10 transition-all duration-200"
-                      )}
-                      placeholder={t('auth.enterPassword')}
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
+                      placeholder="Enter your email"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
-                    >
-                      {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Password
+                      </label>
+                      <Link
+                        href="/forgot-password"
+                        className="text-sm text-primary hover:text-primary-dark transition-colors"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        required
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
+                        placeholder="Enter your password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                      >
+                        {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      id="remember-me"
+                      name="remember-me"
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded transition-colors"
+                    />
+                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                      Remember me
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={cn(
+                      "w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors",
+                      loading && "opacity-70 cursor-not-allowed"
+                    )}
+                  >
+                    {loading ? "Signing in..." : "Sign in"}
+                  </button>
+                </form>
+
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white dark:bg-black text-gray-500 dark:text-gray-400">
+                      Or continue with
+                    </span>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-                    {t('auth.rememberMe')}
-                  </label>
-                </div>
+                <SocialLoginButtons onSocialLogin={handleSocialLogin} />
+              </>
+            )}
 
-                <div className="text-sm">
-                  <Link
-                    href="/forgot-password"
-                    className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
-                  >
-                    {t('auth.forgotPassword')}
-                  </Link>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || redirecting}
-                className={cn(
-                  "w-full px-4 py-2 rounded-lg",
-                  "bg-[#D6FF00] hover:bg-[#c1e600]",
-                  "text-black font-medium",
-                  "border-2 border-black dark:border-[#D6FF00]",
-                  "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D6FF00]",
-                  "transform transition-all duration-200",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "hover:scale-[1.02] active:scale-[0.98]"
-                )}
-              >
-                {loading ? t('auth.loggingIn') : t('auth.login')}
-              </button>
-            </form>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600 transition-colors" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 transition-colors">
-                  {t('auth.orContinueWith')}
-                </span>
-              </div>
-            </div>
-
-            <SocialLoginButtons onProviderClick={handleSocialLogin} />
-
-            <div className="mt-6 text-center text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
-                {t('auth.noAccount')}
-              </span>{' '}
-              <Link
-                href="/register"
-                className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
-              >
-                {t('auth.register')}
-              </Link>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {t('auth.registerMinute')}
+            <div className="text-center mt-6">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Don't have an account?{' '}
+                <Link href="/register" className="font-medium text-primary hover:text-primary-dark transition-colors">
+                  Sign up
+                </Link>
               </p>
             </div>
           </div>

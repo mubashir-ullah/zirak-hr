@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleAuthCallback } from '@/lib/supabaseAuth';
 import { cookies } from 'next/headers';
 import supabase from '@/lib/supabase';
+import { findUserByEmail } from '@/lib/supabaseDb';
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,53 +23,92 @@ export async function GET(request: NextRequest) {
       try {
         // Exchange the code for a session
         const cookieStore = cookies();
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
         
         // Create a temporary supabase client with the cookies
         const supabaseServer = supabase;
         
         // Exchange the code for a session
-        await supabaseServer.auth.exchangeCodeForSession(code);
+        const { data, error: exchangeError } = await supabaseServer.auth.exchangeCodeForSession(code);
         
-        // Handle the callback in our custom auth handler
-        const { user, error } = await handleAuthCallback();
-        
-        if (error || !user) {
-          console.error('Error in auth callback:', error);
+        if (exchangeError || !data.session || !data.user) {
+          console.error('Error exchanging code for session:', exchangeError);
           return NextResponse.redirect(
-            new URL(`/login?error=${encodeURIComponent(error || 'Failed to authenticate')}`, request.url)
+            new URL(`/login?error=${encodeURIComponent(exchangeError?.message || 'Failed to authenticate')}`, request.url)
           );
         }
         
-        // Redirect based on whether the user needs to select a role
-        if (user.needs_role_selection) {
-          return NextResponse.redirect(new URL('/dashboard/role-selection', request.url));
-        } else {
-          // Redirect to the appropriate dashboard based on role
-          switch (user.role) {
-            case 'talent':
-              return NextResponse.redirect(new URL('/dashboard/talent', request.url));
-            case 'hiring_manager':
-              return NextResponse.redirect(new URL('/dashboard/hr', request.url));
-            case 'admin':
-              return NextResponse.redirect(new URL('/dashboard/admin', request.url));
-            default:
-              return NextResponse.redirect(new URL('/dashboard', request.url));
+        // Check if user exists in our database
+        const user = await findUserByEmail(data.user.email || '');
+        
+        if (!user) {
+          // Create user in our database
+          try {
+            const createUserResponse = await fetch(`${requestUrl.origin}/api/auth/create-user`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                id: data.user.id,
+                email: data.user.email,
+                name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+                social_provider: data.user.app_metadata?.provider || 'unknown',
+              }),
+            });
+            
+            if (!createUserResponse.ok) {
+              console.error('Error creating user record:', await createUserResponse.text());
+            }
+          } catch (createError) {
+            console.error('Error creating user record:', createError);
           }
+          
+          // User doesn't exist in our database yet, redirect to role selection
+          return NextResponse.redirect(
+            new URL(`/dashboard/role-selection?email=${encodeURIComponent(data.user.email || '')}`, request.url)
+          );
         }
-      } catch (exchangeError) {
-        console.error('Error exchanging code for session:', exchangeError);
+        
+        // Check if email verification is needed
+        if (!user.email_verified) {
+          return NextResponse.redirect(
+            new URL(`/verify-email?email=${encodeURIComponent(user.email)}`, request.url)
+          );
+        }
+        
+        // Check if role selection is needed
+        if (!user.role || user.needs_role_selection) {
+          return NextResponse.redirect(
+            new URL('/dashboard/role-selection', request.url)
+          );
+        }
+        
+        // Redirect to the appropriate dashboard based on role
+        switch (user.role) {
+          case 'talent':
+            return NextResponse.redirect(new URL('/dashboard/talent', request.url));
+          case 'hiring_manager':
+            return NextResponse.redirect(new URL('/dashboard/hiring-manager', request.url));
+          case 'admin':
+            return NextResponse.redirect(new URL('/dashboard/admin', request.url));
+          default:
+            // Unknown role, redirect to role selection
+            return NextResponse.redirect(new URL('/dashboard/role-selection', request.url));
+        }
+      } catch (error) {
+        console.error('Error in OAuth callback:', error);
         return NextResponse.redirect(
-          new URL('/login?error=SessionExchangeError', request.url)
+          new URL(`/login?error=${encodeURIComponent('An unexpected error occurred')}`, request.url)
         );
       }
     }
     
     // If no code is present, redirect to login
-    return NextResponse.redirect(new URL('/login?error=MissingAuthCode', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
   } catch (error) {
-    console.error('Unexpected error in auth callback:', error);
-    return NextResponse.redirect(new URL('/login?error=UnexpectedError', request.url));
+    console.error('Unexpected error in OAuth callback:', error);
+    return NextResponse.redirect(
+      new URL(`/login?error=${encodeURIComponent('An unexpected error occurred')}`, request.url)
+    );
   }
 }

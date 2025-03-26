@@ -139,6 +139,17 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
+-- Email Verification table
+CREATE TABLE IF NOT EXISTS public.email_verification (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT UNIQUE NOT NULL,
+  hashed_otp TEXT NOT NULL,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
 -- Create RPC function for bulk updating jobs
 CREATE OR REPLACE FUNCTION bulk_update_jobs(jobs_data JSONB[])
 RETURNS SETOF jobs AS $$
@@ -219,6 +230,10 @@ FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER update_notifications_timestamp
 BEFORE UPDATE ON public.notifications
+FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+CREATE TRIGGER update_email_verification_timestamp
+BEFORE UPDATE ON public.email_verification
 FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 
 -- Set up Row Level Security (RLS) policies
@@ -336,6 +351,16 @@ CREATE POLICY "Users can update their own notifications" ON public.notifications
 
 CREATE POLICY "Users can delete their own notifications" ON public.notifications
   FOR DELETE USING (user_id = auth.uid());
+
+-- Email Verification table policies
+ALTER TABLE public.email_verification ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can view all email verifications" ON public.email_verification
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 -- User Events table for analytics
 CREATE TABLE IF NOT EXISTS public.user_events (

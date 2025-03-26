@@ -32,6 +32,22 @@ const adminRoutes = [
   '/dashboard/admin/settings',
 ]
 
+// Public routes that don't require authentication
+const publicRoutes = [
+  '/',
+  '/login',
+  '/register',
+  '/verify-email',
+  '/dashboard/role-selection',
+  '/api/auth/set-role',
+  '/api/auth/get-user-role',
+  '/api/auth/verify-otp',
+  '/api/auth/resend-otp',
+  '/api/auth/send-otp',
+  '/api/auth/get-user',
+  '/api/auth/create-user',
+]
+
 export async function middleware(req: NextRequest) {
   try {
     const { pathname } = req.nextUrl
@@ -47,77 +63,77 @@ export async function middleware(req: NextRequest) {
     
     console.log('Middleware - Session:', session ? 'Session exists' : 'No session')
     
+    // Allow public routes without authentication
+    if (publicRoutes.some(route => pathname.startsWith(route))) {
+      return res
+    }
+    
     // Protect dashboard routes
     if (pathname.startsWith('/dashboard')) {
-      // If user is not authenticated, redirect to login
+      // If no session, redirect to login
       if (!session) {
         console.log('Middleware - No session, redirecting to login')
         return NextResponse.redirect(new URL('/login', req.url))
       }
       
-      // Get the user data from our database
+      // Special case for role selection page
+      if (pathname === '/dashboard/role-selection') {
+        return res
+      }
+      
+      // Get user data from our database
       const user = await findUserById(session.user.id)
       
       if (!user) {
         console.log('Middleware - User not found in database')
-        return NextResponse.redirect(new URL('/login', req.url))
+        return NextResponse.redirect(new URL('/register', req.url))
       }
       
-      console.log('Middleware - User:', {
-        id: user.id,
-        role: user.role,
-        needsRoleSelection: user.needs_role_selection
-      })
+      // Check if email is verified
+      if (!user.email_verified) {
+        console.log('Middleware - Email not verified')
+        return NextResponse.redirect(new URL(`/verify-email?email=${encodeURIComponent(user.email)}`, req.url))
+      }
       
-      // If user needs to select a role, redirect to role selection page
-      // unless they're already on that page
-      if (user.needs_role_selection && pathname !== '/dashboard/role-selection') {
-        console.log('Middleware - User needs role selection, redirecting')
+      // Check if user needs to select a role
+      if (!user.role || user.needs_role_selection) {
+        console.log('Middleware - User needs to select a role')
         return NextResponse.redirect(new URL('/dashboard/role-selection', req.url))
       }
       
-      // If user is on role selection page but doesn't need to select a role,
-      // redirect to appropriate dashboard
-      if (pathname === '/dashboard/role-selection' && !user.needs_role_selection) {
-        console.log('Middleware - User already has role, redirecting to dashboard')
-        
-        if (user.role === 'talent') {
+      // Check role-specific access
+      if (user.role === 'talent') {
+        if (hiringManagerRoutes.some(route => pathname.startsWith(route)) || 
+            adminRoutes.some(route => pathname.startsWith(route))) {
+          console.log('Middleware - Talent user trying to access hiring manager or admin route')
           return NextResponse.redirect(new URL('/dashboard/talent', req.url))
-        } else if (user.role === 'hiring_manager') {
-          return NextResponse.redirect(new URL('/dashboard/hiring-manager', req.url))
-        } else if (user.role === 'admin') {
-          return NextResponse.redirect(new URL('/dashboard/admin', req.url))
         }
-      }
-      
-      // Check if user is trying to access a role-specific route they don't have access to
-      if (user.role === 'talent' && hiringManagerRoutes.some(route => pathname.startsWith(route))) {
-        console.log('Middleware - Talent trying to access hiring manager route')
-        return NextResponse.redirect(new URL('/dashboard/talent', req.url))
-      }
-      
-      if (user.role === 'hiring_manager' && talentRoutes.some(route => pathname.startsWith(route))) {
-        console.log('Middleware - Hiring manager trying to access talent route')
-        return NextResponse.redirect(new URL('/dashboard/hiring-manager', req.url))
-      }
-      
-      // Only admins can access admin routes
-      if (user.role !== 'admin' && adminRoutes.some(route => pathname.startsWith(route))) {
-        console.log('Middleware - Non-admin trying to access admin route')
-        
-        if (user.role === 'talent') {
-          return NextResponse.redirect(new URL('/dashboard/talent', req.url))
-        } else {
+      } else if (user.role === 'hiring_manager') {
+        if (talentRoutes.some(route => pathname.startsWith(route)) || 
+            adminRoutes.some(route => pathname.startsWith(route))) {
+          console.log('Middleware - Hiring manager trying to access talent or admin route')
           return NextResponse.redirect(new URL('/dashboard/hiring-manager', req.url))
         }
+      } else if (user.role === 'admin') {
+        // Admin can access all routes
+      } else {
+        // Unknown role
+        console.log('Middleware - Unknown role')
+        return NextResponse.redirect(new URL('/dashboard/role-selection', req.url))
       }
     }
     
-    // Allow the request to continue
+    // Allow access to API routes with valid session
+    if (pathname.startsWith('/api/dashboard')) {
+      if (!session) {
+        console.log('Middleware - API request without session')
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    }
+    
     return res
   } catch (error) {
     console.error('Middleware error:', error)
-    
     // In case of error, redirect to login
     return NextResponse.redirect(new URL('/login', req.url))
   }
@@ -127,6 +143,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/api/dashboard/:path*',
-    '/api/protected/:path*',
+    '/verify-email',
+    '/api/auth/:path*',
   ],
 }

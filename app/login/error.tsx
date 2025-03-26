@@ -2,7 +2,6 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { useLanguage } from '../contexts/LanguageContext'
 
 export default function LoginErrorComponent({
   error,
@@ -11,8 +10,6 @@ export default function LoginErrorComponent({
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  const { t } = useLanguage()
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full bg-background border rounded-lg shadow-lg p-6 text-center">
