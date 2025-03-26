@@ -1,0 +1,90 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyOTP } from '@/lib/otp';
+import { findUserByEmail, updateUser } from '@/lib/database';
+import supabase from '@/lib/supabase';
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { email, otp } = body;
+
+    if (!email || !otp) {
+      return NextResponse.json(
+        { message: 'Email and OTP are required' },
+        { status: 400 }
+      );
+    }
+
+    // Verify the OTP
+    const isValid = await verifyOTP(email, otp);
+
+    if (!isValid) {
+      return NextResponse.json(
+        { message: 'Invalid or expired verification code' },
+        { status: 400 }
+      );
+    }
+
+    // Check if the user exists in our database
+    const user = await findUserByEmail(email);
+
+    if (!user) {
+      return NextResponse.json(
+        { message: 'User not found. Please register first.' },
+        { status: 404 }
+      );
+    }
+
+    // Update the user's email_verified status in our database
+    const updatedUser = await updateUser(user.id, { 
+      email_verified: true,
+      updated_at: new Date().toISOString()
+    });
+
+    if (!updatedUser) {
+      console.error('Error updating user verification status');
+      return NextResponse.json(
+        { message: 'Failed to update verification status' },
+        { status: 500 }
+      );
+    }
+
+    // Update user metadata in Supabase Auth
+    const { error: updateAuthError } = await supabase.auth.admin.updateUserById(
+      user.id,
+      {
+        user_metadata: { 
+          ...user,
+          email_verified: true
+        }
+      }
+    );
+
+    if (updateAuthError) {
+      console.error('Error updating user metadata:', updateAuthError);
+      // Continue anyway since we've updated our database
+    }
+
+    return NextResponse.json(
+      { 
+        message: 'Email verified successfully',
+        user: {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          needsRoleSelection: updatedUser.needs_role_selection,
+          needsProfileCompletion: updatedUser.needs_profile_completion,
+          emailVerified: true
+        }
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    return NextResponse.json(
+      { message: 'An unexpected error occurred' },
+      { status: 500 }
+    );
+  }
+}

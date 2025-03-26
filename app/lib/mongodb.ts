@@ -1,5 +1,16 @@
 import { MongoClient } from 'mongodb'
 
+/**
+ * DEPRECATED: MongoDB Connection
+ * 
+ * This file is deprecated and will be removed once all API routes
+ * are migrated to use Supabase. Please use the new database functions
+ * from '@/lib/database' for any new code.
+ * 
+ * Migration Status: In Progress
+ * Target Removal Date: After API migration is complete
+ */
+
 if (!process.env.MONGODB_URI) {
   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"')
 }

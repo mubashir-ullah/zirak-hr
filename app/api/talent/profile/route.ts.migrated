@@ -1,0 +1,179 @@
+import { NextRequest, NextResponse } from 'next/server';
+import supabase from '@/lib/supabase';
+import { 
+  findUserById, 
+  getTalentProfileByUserId, 
+  upsertTalentProfile,
+  updateUser,
+  getTalentProfileWithRelations
+} from '@/lib/database';
+
+// GET endpoint to retrieve talent profile
+export async function GET(request: NextRequest) {
+  try {
+    // Get the current session from Supabase
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user data
+    const user = await findUserById(session.user.id);
+    
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    
+    // Get talent profile with all related data (skills, education, experience, etc.)
+    const profile = await getTalentProfileWithRelations(session.user.id);
+    
+    // If no profile exists yet, return empty profile structure
+    if (!profile) {
+      return NextResponse.json({ 
+        profile: {
+          userId: session.user.id,
+          fullName: user.name || '',
+          email: user.email || '',
+          skills: [],
+          experience: [],
+          education: [],
+          languages: [],
+          country: '',
+          city: '',
+          germanLevel: '',
+          availability: '',
+          visaRequired: false,
+          visaType: '',
+          linkedinUrl: '',
+          githubUrl: '',
+          bio: '',
+          profilePicture: '',
+          resumeUrl: user.resume_url || '',
+          title: '',
+          phone: '',
+          preferredJobTypes: [],
+          preferredLocations: []
+        }
+      });
+    }
+    
+    // Transform the profile data to the expected format
+    const transformedProfile = {
+      userId: profile.user_id,
+      fullName: profile.full_name,
+      email: user.email,
+      skills: profile.skills || [],
+      experience: profile.experience || [],
+      education: profile.education || [],
+      languages: profile.languages || [],
+      country: profile.country || '',
+      city: profile.city || '',
+      germanLevel: profile.german_level || '',
+      availability: profile.availability || '',
+      visaRequired: profile.visa_required || false,
+      visaType: profile.visa_type || '',
+      linkedinUrl: profile.linkedin_url || '',
+      githubUrl: profile.github_url || '',
+      bio: profile.bio || '',
+      profilePicture: profile.profile_picture || '',
+      resumeUrl: profile.resume_url || user.resume_url || '',
+      title: profile.title || '',
+      phone: profile.phone || '',
+      preferredJobTypes: profile.preferences?.preferred_job_types || [],
+      preferredLocations: profile.preferences?.preferred_locations || []
+    };
+    
+    return NextResponse.json({ profile: transformedProfile });
+  } catch (error) {
+    console.error('Error fetching talent profile:', error);
+    return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
+  }
+}
+
+// POST endpoint to create or update talent profile
+export async function POST(request: NextRequest) {
+  try {
+    // Get the current session from Supabase
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Get profile data from request
+    const profileData = await request.json();
+    
+    // Prepare profile data for our database function
+    const talentProfileData = {
+      user_id: session.user.id,
+      full_name: profileData.fullName,
+      title: profileData.title,
+      bio: profileData.bio,
+      phone: profileData.phone,
+      country: profileData.country,
+      city: profileData.city,
+      profile_picture: profileData.profilePicture,
+      resume_url: profileData.resumeUrl,
+      linkedin_url: profileData.linkedinUrl,
+      github_url: profileData.githubUrl,
+      availability: profileData.availability,
+      german_level: profileData.germanLevel,
+      visa_required: profileData.visaRequired,
+      visa_type: profileData.visaType
+    };
+    
+    // Use the upsertTalentProfile function to create or update the profile
+    const result = await upsertTalentProfile(talentProfileData);
+    
+    if (!result) {
+      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+    }
+    
+    // Update resume_url in user record if it's provided
+    if (profileData.resumeUrl) {
+      await updateUser(session.user.id, { resume_url: profileData.resumeUrl });
+    }
+    
+    // Get the updated profile with all related data
+    const updatedProfile = await getTalentProfileWithRelations(session.user.id);
+    
+    if (!updatedProfile) {
+      return NextResponse.json({ error: 'Failed to retrieve updated profile' }, { status: 500 });
+    }
+    
+    // Transform the profile data to the expected format
+    const transformedProfile = {
+      userId: updatedProfile.user_id,
+      fullName: updatedProfile.full_name,
+      title: updatedProfile.title,
+      bio: updatedProfile.bio,
+      phone: updatedProfile.phone,
+      country: updatedProfile.country,
+      city: updatedProfile.city,
+      profilePicture: updatedProfile.profile_picture,
+      resumeUrl: updatedProfile.resume_url,
+      linkedinUrl: updatedProfile.linkedin_url,
+      githubUrl: updatedProfile.github_url,
+      availability: updatedProfile.availability,
+      germanLevel: updatedProfile.german_level,
+      visaRequired: updatedProfile.visa_required,
+      visaType: updatedProfile.visa_type,
+      skills: updatedProfile.skills || [],
+      experience: updatedProfile.experience || [],
+      education: updatedProfile.education || [],
+      languages: updatedProfile.languages || [],
+      preferredJobTypes: updatedProfile.preferences?.preferred_job_types || [],
+      preferredLocations: updatedProfile.preferences?.preferred_locations || []
+    };
+    
+    // Return the updated profile
+    return NextResponse.json({ 
+      message: 'Profile updated successfully',
+      profile: transformedProfile
+    });
+  } catch (error) {
+    console.error('Error updating talent profile:', error);
+    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
+  }
+}
