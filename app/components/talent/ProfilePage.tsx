@@ -43,6 +43,7 @@ interface ProfileData {
     name: string;
     level: string;
   }[];
+  userId: string;
 }
 
 interface SuggestedSkill {
@@ -77,7 +78,8 @@ export default function ProfilePage() {
     education: [],
     preferredJobTypes: [],
     preferredLocations: [],
-    languages: []
+    languages: [],
+    userId: ''
   })
   
   // UI state
@@ -462,73 +464,155 @@ export default function ProfilePage() {
   }
 
   // Handle profile picture upload
-  const handleProfilePictureClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click()
-    }
-  }
-
-  // Process profile picture file
   const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    
-    // Show preview
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        setProfilePicturePreview(e.target.result as string)
-      }
+    if (!e.target.files || e.target.files.length === 0) {
+      return;
     }
-    reader.readAsDataURL(file)
     
-    // Upload to server
+    const file = e.target.files[0];
+    
+    // Validate file type and size
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    
+    if (!allowedTypes.includes(file.type)) {
+      setMessage({
+        type: 'error',
+        text: 'Invalid file type. Please upload a JPEG or PNG image.'
+      });
+      return;
+    }
+    
+    if (file.size > maxSize) {
+      setMessage({
+        type: 'error',
+        text: 'File too large. Maximum size is 5MB.'
+      });
+      return;
+    }
+    
+    // Create a preview
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setProfilePicturePreview(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+    
     try {
-      const formData = new FormData()
-      formData.append('profilePicture', file)
+      setMessage({
+        type: 'info',
+        text: 'Uploading profile picture...'
+      });
       
-      const response = await fetch('/api/talent/profile/picture', {
+      // Create form data for the file upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bucket', 'profile-pictures');
+      formData.append('path', `user-${profileData.userId || 'new'}`);
+      
+      // Upload the file
+      const response = await fetch('/api/upload', {
         method: 'POST',
-        body: formData,
-      })
+        body: formData
+      });
       
       if (!response.ok) {
-        throw new Error('Failed to upload profile picture')
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload profile picture');
       }
       
-      const data = await response.json()
+      const data = await response.json();
       
-      setProfileData(prev => ({
-        ...prev,
-        profilePicture: data.profilePictureUrl
-      }))
+      // Update profile data with the new profile picture URL
+      setProfileData({
+        ...profileData,
+        profilePicture: data.url
+      });
       
       setMessage({
         type: 'success',
-        text: 'Profile picture updated successfully!'
-      })
+        text: 'Profile picture uploaded successfully!'
+      });
       
-      // Clear message after 3 seconds
-      setTimeout(() => {
-        setMessage({ type: '', text: '' })
-      }, 3000)
+      // Auto-save the profile with the new picture
+      handleSaveProfile({
+        ...profileData,
+        profilePicture: data.url
+      });
+      
     } catch (error) {
-      console.error('Error uploading profile picture:', error)
+      console.error('Error uploading profile picture:', error);
       setMessage({
         type: 'error',
-        text: 'Failed to upload profile picture. Please try again later.'
-      })
+        text: error instanceof Error ? error.message : 'Failed to upload profile picture'
+      });
     }
-  }
+  };
+
+  // Calculate profile completion percentage
+  const calculateCompletionPercentage = () => {
+    const requiredFields = [
+      'fullName',
+      'title',
+      'phone',
+      'country',
+      'city',
+      'bio',
+      'germanLevel',
+      'availability',
+      'linkedinUrl'
+    ];
+    
+    const arrayFields = [
+      { name: 'skills', minLength: 3 },
+      { name: 'education', minLength: 1 },
+      { name: 'languages', minLength: 1 },
+      { name: 'preferredJobTypes', minLength: 1 },
+      { name: 'preferredLocations', minLength: 1 }
+    ];
+    
+    let completedFields = 0;
+    let totalFields = requiredFields.length + arrayFields.length;
+    
+    // Check required string/boolean fields
+    requiredFields.forEach(field => {
+      if (
+        profileData[field as keyof ProfileData] && 
+        (typeof profileData[field as keyof ProfileData] === 'string' ? 
+          (profileData[field as keyof ProfileData] as string).trim() !== '' : 
+          true)
+      ) {
+        completedFields++;
+      }
+    });
+    
+    // Check array fields
+    arrayFields.forEach(field => {
+      const array = profileData[field.name as keyof ProfileData] as any[];
+      if (array && array.length >= field.minLength) {
+        completedFields++;
+      }
+    });
+    
+    // Check profile picture
+    if (profileData.profilePicture) {
+      completedFields++;
+      totalFields++;
+    }
+    
+    // Check resume
+    if (profileData.resumeUrl) {
+      completedFields++;
+      totalFields++;
+    }
+    
+    const percentage = Math.round((completedFields / totalFields) * 100);
+    setCompletionPercentage(percentage);
+  };
 
   // Handle resume upload
-  const handleResumeClick = () => {
-    if (resumeInputRef.current) {
-      resumeInputRef.current.click()
-    }
-  }
-
-  // Process resume file
   const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -602,125 +686,6 @@ export default function ProfilePage() {
     }
   }
 
-  // Calculate profile completion percentage
-  const calculateCompletionPercentage = () => {
-    const requiredFields = [
-      'fullName',
-      'email',
-      'experience',
-      'country',
-      'city',
-      'germanLevel',
-      'availability',
-      'title',
-      'phone'
-    ]
-    
-    const filledFields = requiredFields.filter(field => 
-      Boolean(profileData[field as keyof ProfileData])
-    )
-    
-    // Add points for arrays that should have at least one item
-    if (profileData.skills.length > 0) filledFields.push('skills')
-    if (profileData.education.length > 0) filledFields.push('education')
-    if (profileData.languages.length > 0) filledFields.push('languages')
-    
-    // Calculate percentage
-    const percentage = Math.round((filledFields.length / (requiredFields.length + 3)) * 100)
-    setCompletionPercentage(percentage)
-  }
-
-  // Add education entry
-  const handleAddEducation = () => {
-    setProfileData({
-      ...profileData,
-      education: [
-        ...profileData.education,
-        { degree: '', institution: '', graduationYear: '' }
-      ]
-    })
-  }
-
-  // Update education entry
-  const handleEducationChange = (index: number, field: string, value: string) => {
-    const updatedEducation = [...profileData.education]
-    updatedEducation[index] = {
-      ...updatedEducation[index],
-      [field]: value
-    }
-    
-    setProfileData({
-      ...profileData,
-      education: updatedEducation
-    })
-  }
-
-  // Remove education entry
-  const handleRemoveEducation = (index: number) => {
-    const updatedEducation = [...profileData.education]
-    updatedEducation.splice(index, 1)
-    
-    setProfileData({
-      ...profileData,
-      education: updatedEducation
-    })
-  }
-
-  // Add language
-  const handleAddLanguage = () => {
-    setProfileData({
-      ...profileData,
-      languages: [
-        ...profileData.languages,
-        { name: '', level: 'Intermediate' }
-      ]
-    })
-  }
-
-  // Update language
-  const handleLanguageChange = (index: number, field: string, value: string) => {
-    const updatedLanguages = [...profileData.languages]
-    updatedLanguages[index] = {
-      ...updatedLanguages[index],
-      [field]: value
-    }
-    
-    setProfileData({
-      ...profileData,
-      languages: updatedLanguages
-    })
-  }
-
-  // Remove language
-  const handleRemoveLanguage = (index: number) => {
-    const updatedLanguages = [...profileData.languages]
-    updatedLanguages.splice(index, 1)
-    
-    setProfileData({
-      ...profileData,
-      languages: updatedLanguages
-    })
-  }
-
-  // Toggle job type preference
-  const handleToggleJobType = (jobType: string) => {
-    const updatedJobTypes = [...profileData.preferredJobTypes]
-    
-    if (updatedJobTypes.includes(jobType)) {
-      // Remove if already exists
-      const index = updatedJobTypes.indexOf(jobType)
-      updatedJobTypes.splice(index, 1)
-    } else {
-      // Add if doesn't exist
-      updatedJobTypes.push(jobType)
-    }
-    
-    setProfileData({
-      ...profileData,
-      preferredJobTypes: updatedJobTypes
-    })
-  }
-
   if (isLoading) {
     return (
       <div className="bg-white dark:bg-gray-900 rounded-lg p-6 flex justify-center items-center h-64">
@@ -779,34 +744,40 @@ export default function ProfilePage() {
         <div className="lg:col-span-1">
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6">
             <div className="flex flex-col items-center">
-              <div 
-                className="w-32 h-32 rounded-full bg-gray-200 overflow-hidden relative mb-4 cursor-pointer"
-                onClick={handleProfilePictureClick}
-              >
-                {profilePicturePreview ? (
-                  <Image 
-                    src={profilePicturePreview} 
-                    alt="Profile" 
-                    fill
-                    style={{ objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <FaCamera size={24} className="text-gray-400" />
-                  </div>
-                )}
-                
-                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <FaCamera size={24} className="text-white" />
+              <div className="relative w-32 h-32 mx-auto mb-4">
+                <div className="w-full h-full rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg bg-gray-200 dark:bg-gray-700">
+                  {profilePicturePreview ? (
+                    <Image 
+                      src={profilePicturePreview} 
+                      alt={profileData.fullName || 'Profile Picture'} 
+                      width={128} 
+                      height={128} 
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full text-gray-400">
+                      <FaCamera size={32} />
+                    </div>
+                  )}
                 </div>
                 
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleProfilePictureChange}
-                />
+                <div className="absolute bottom-0 right-0">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-primary hover:bg-primary/90 text-black rounded-full p-2 shadow-md"
+                    aria-label="Upload profile picture"
+                  >
+                    <FaCamera size={16} />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg"
+                    onChange={handleProfilePictureChange}
+                    className="hidden"
+                  />
+                </div>
               </div>
               
               <h3 className="text-lg font-semibold mb-1">
@@ -854,7 +825,7 @@ export default function ProfilePage() {
             
             <div 
               className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-black transition-colors"
-              onClick={handleResumeClick}
+              onClick={() => resumeInputRef.current?.click()}
             >
               {isParsingResume ? (
                 <div className="flex flex-col items-center">
@@ -878,8 +849,8 @@ export default function ProfilePage() {
               )}
               
               <input
-                type="file"
                 ref={resumeInputRef}
+                type="file"
                 className="hidden"
                 accept=".pdf,.docx"
                 onChange={handleResumeChange}
@@ -1459,6 +1430,29 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Profile Completion Indicator */}
+      <div className="mt-4 mb-6">
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-sm font-medium">Profile Completion</span>
+          <span className="text-sm font-medium">{completionPercentage}%</span>
+        </div>
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+          <div 
+            className={`h-2.5 rounded-full ${
+              completionPercentage < 30 ? 'bg-red-500' : 
+              completionPercentage < 70 ? 'bg-yellow-500' : 
+              'bg-green-500'
+            }`} 
+            style={{ width: `${completionPercentage}%` }}
+          ></div>
+        </div>
+        {completionPercentage < 80 && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Complete your profile to increase your chances of being discovered by employers.
+          </p>
+        )}
       </div>
       
       {/* Skill Assessment Modal */}

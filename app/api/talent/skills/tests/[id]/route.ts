@@ -1,183 +1,237 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
-import { verifyToken } from '@/lib/auth';
-import { 
-  findSkillTestById, 
-  createTestAttempt, 
-  createVerifiedSkill,
-  findUserTestAttemptByTestId
-} from '@/app/models/skillTest';
-import { ObjectId } from 'mongodb';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
-// GET endpoint to retrieve a specific skill test
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+interface RouteParams {
+  params: {
+    id: string;
+  };
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = params;
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Test ID is required' },
+        { status: 400 }
+      );
+    }
+    
     // Verify authentication
-    const userData = await verifyToken(request);
-    if (!userData) {
+    const supabase = createServerComponentClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const testId = params.id;
-    if (!testId) {
-      return NextResponse.json({ error: 'Test ID is required' }, { status: 400 });
-    }
-
-    // Connect to database
-    const { db } = await connectToDatabase();
     
-    // Get the test
-    const test = await findSkillTestById(db, testId);
-    if (!test) {
-      return NextResponse.json({ error: 'Test not found' }, { status: 404 });
+    const userId = session.user.id;
+    
+    // Get the test details
+    const { data: test, error: testError } = await supabase
+      .from('skill_tests')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (testError) {
+      if (testError.code === 'PGRST116') { // No rows returned
+        return NextResponse.json(
+          { error: 'Test not found' },
+          { status: 404 }
+        );
+      }
+      throw testError;
     }
     
     // Check if user has already taken this test
-    const previousAttempt = await findUserTestAttemptByTestId(db, userData.id, testId);
+    const { data: previousAttempt, error: attemptError } = await supabase
+      .from('skill_test_attempts')
+      .select('id, score, passed, created_at')
+      .eq('user_id', userId)
+      .eq('skill_test_id', id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
     
-    // For security, don't send correct answers if the test is being taken
-    const secureTest = {
-      ...test.toObject(),
-      questions: test.questions.map(q => ({
-        _id: q._id,
-        text: q.text,
-        options: q.options,
-        difficulty: q.difficulty
-        // Omitting correctAnswer and explanation
-      }))
+    if (attemptError) {
+      throw attemptError;
+    }
+    
+    // Prepare response
+    const response: any = {
+      test: {
+        ...test,
+        // Don't include correct answers in the response
+        questions: test.questions.map((q: any) => ({
+          id: q.id,
+          text: q.text,
+          options: q.options
+        }))
+      }
     };
     
-    return NextResponse.json({
-      test: secureTest,
-      hasPreviousAttempt: !!previousAttempt,
-      previousScore: previousAttempt?.score
-    });
+    if (previousAttempt) {
+      response.hasPreviousAttempt = true;
+      response.previousScore = previousAttempt.score;
+      response.previouslyPassed = previousAttempt.passed;
+      response.previousAttemptDate = previousAttempt.created_at;
+    } else {
+      response.hasPreviousAttempt = false;
+    }
+    
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Error retrieving skill test:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error fetching test details:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch test details' },
+      { status: 500 }
+    );
   }
 }
 
-// POST endpoint to submit test results
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = params;
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Test ID is required' },
+        { status: 400 }
+      );
+    }
+    
     // Verify authentication
-    const userData = await verifyToken(request);
-    if (!userData) {
+    const supabase = createServerComponentClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const testId = params.id;
-    if (!testId) {
-      return NextResponse.json({ error: 'Test ID is required' }, { status: 400 });
-    }
-
+    
+    const userId = session.user.id;
+    
     // Parse request body
-    const { answers, startTime, endTime } = await request.json();
+    const body = await request.json();
+    const { answers, startTime, endTime } = body;
     
-    if (!answers || !Array.isArray(answers) || !startTime || !endTime) {
-      return NextResponse.json({ error: 'Invalid submission data' }, { status: 400 });
+    if (!answers || !Array.isArray(answers)) {
+      return NextResponse.json(
+        { error: 'Answers array is required' },
+        { status: 400 }
+      );
     }
-
-    // Connect to database
-    const { db } = await connectToDatabase();
     
-    // Get the test with correct answers
-    const test = await findSkillTestById(db, testId);
-    if (!test) {
-      return NextResponse.json({ error: 'Test not found' }, { status: 404 });
+    // Get the test details with correct answers
+    const { data: test, error: testError } = await supabase
+      .from('skill_tests')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (testError) {
+      if (testError.code === 'PGRST116') { // No rows returned
+        return NextResponse.json(
+          { error: 'Test not found' },
+          { status: 404 }
+        );
+      }
+      throw testError;
     }
     
     // Calculate score
-    const startTimeDate = new Date(startTime);
-    const endTimeDate = new Date(endTime);
-    const completionTimeSeconds = Math.round((endTimeDate.getTime() - startTimeDate.getTime()) / 1000);
-    
-    // Validate and score each answer
-    const scoredAnswers = answers.map(answer => {
-      const question = test.questions.find(q => q._id.toString() === answer.questionId);
-      if (!question) {
-        return {
-          ...answer,
-          isCorrect: false
-        };
+    let correctAnswers = 0;
+    const questionsWithResults = test.questions.map((question: any, index: number) => {
+      const userAnswer = answers[index];
+      const isCorrect = question.correctAnswer === userAnswer;
+      
+      if (isCorrect) {
+        correctAnswers++;
       }
       
-      const isCorrect = answer.selectedOption === question.correctAnswer;
       return {
-        ...answer,
+        ...question,
+        userAnswer,
         isCorrect
       };
     });
     
-    // Calculate overall score
-    const correctAnswers = scoredAnswers.filter(a => a.isCorrect).length;
     const totalQuestions = test.questions.length;
-    const scorePercentage = Math.round((correctAnswers / totalQuestions) * 100);
-    const passed = scorePercentage >= test.passingScore;
+    const score = Math.round((correctAnswers / totalQuestions) * 100);
+    const passed = score >= test.passingScore;
     
-    // Create test attempt record
-    const testAttempt = await createTestAttempt(db, {
-      userId: new ObjectId(userData.id),
-      testId: new ObjectId(testId),
-      score: scorePercentage,
-      passed,
-      answers: scoredAnswers,
-      startTime: startTimeDate,
-      endTime: endTimeDate,
-      completionTime: completionTimeSeconds,
-      createdAt: new Date()
-    });
+    // Save the attempt
+    const { data: attempt, error: attemptError } = await supabase
+      .from('skill_test_attempts')
+      .insert({
+        user_id: userId,
+        skill_test_id: id,
+        answers: answers,
+        score: score,
+        passed: passed,
+        time_taken: endTime ? (new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000 : null,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
     
-    // If the user passed the test, create a verified skill
-    if (passed) {
-      await createVerifiedSkill(db, {
-        userId: new ObjectId(userData.id),
-        skill: test.skillCategory,
-        testId: new ObjectId(testId),
-        score: scorePercentage,
-        verifiedAt: new Date(),
-        // Skills are verified for 6 months
-        expiresAt: new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000)
-      });
-      
-      // Update user profile to add verified skill badge
-      await db.collection('users').updateOne(
-        { _id: new ObjectId(userData.id) },
-        { 
-          $addToSet: { 
-            verifiedSkills: test.skillCategory 
-          } 
-        }
-      );
+    if (attemptError) {
+      throw attemptError;
     }
     
-    // Return results with explanations for each question
-    const resultsWithExplanations = scoredAnswers.map(answer => {
-      const question = test.questions.find(q => q._id.toString() === answer.questionId);
-      return {
-        ...answer,
-        explanation: question?.explanation || '',
-        correctAnswer: question?.correctAnswer
-      };
-    });
+    // If the test was passed, update user's verified skills
+    if (passed) {
+      // Check if the user already has this skill verified
+      const { data: existingSkill, error: existingSkillError } = await supabase
+        .from('user_verified_skills')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('skill_id', test.skill_id)
+        .maybeSingle();
+      
+      if (existingSkillError) {
+        throw existingSkillError;
+      }
+      
+      // If not, add it to verified skills
+      if (!existingSkill) {
+        const { error: verifyError } = await supabase
+          .from('user_verified_skills')
+          .insert({
+            user_id: userId,
+            skill_id: test.skill_id,
+            test_attempt_id: attempt.id,
+            verified_date: new Date().toISOString()
+          });
+        
+        if (verifyError) {
+          throw verifyError;
+        }
+      }
+    }
     
     return NextResponse.json({
-      score: scorePercentage,
-      passed,
-      correctAnswers,
-      totalQuestions,
-      completionTime: completionTimeSeconds,
-      results: resultsWithExplanations
+      attempt: {
+        id: attempt.id,
+        score,
+        passed,
+        createdAt: attempt.created_at
+      },
+      results: {
+        score,
+        passed,
+        correctAnswers,
+        totalQuestions,
+        questionsWithResults
+      }
     });
   } catch (error) {
-    console.error('Error submitting test results:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error submitting test answers:', error);
+    return NextResponse.json(
+      { error: 'Failed to submit test answers' },
+      { status: 500 }
+    );
   }
 }

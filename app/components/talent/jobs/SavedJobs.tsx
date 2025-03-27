@@ -42,7 +42,7 @@ interface SavedJob {
 }
 
 interface SavedJobsProps {
-  onJobSelect: (job: any) => void;
+  onJobSelect: (job: Job) => void;
 }
 
 export default function SavedJobs({ onJobSelect }: SavedJobsProps) {
@@ -50,43 +50,62 @@ export default function SavedJobs({ onJobSelect }: SavedJobsProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+  const [editingNotes, setEditingNotes] = useState<{ id: string, notes: string } | null>(null)
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
-    totalSavedJobs: 0
+    totalJobs: 0,
+    limit: 10
   })
-  const [editingNotes, setEditingNotes] = useState<{ id: string, notes: string } | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filteredJobs, setFilteredJobs] = useState<SavedJob[]>([])
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
   // Fetch saved jobs on component mount and when pagination changes
   useEffect(() => {
     fetchSavedJobs()
   }, [pagination.currentPage])
 
-  // Fetch saved jobs from API
+  // Filter jobs when search query changes
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredJobs(savedJobs)
+    } else {
+      const query = searchQuery.toLowerCase()
+      setFilteredJobs(
+        savedJobs.filter(
+          (savedJob) => 
+            savedJob.jobId.title.toLowerCase().includes(query) ||
+            savedJob.jobId.company.toLowerCase().includes(query) ||
+            savedJob.jobId.location.toLowerCase().includes(query)
+        )
+      )
+    }
+  }, [savedJobs, searchQuery])
+
   const fetchSavedJobs = async () => {
     try {
       setIsLoading(true)
       setError('')
       
-      // Build query string
-      const queryParams = new URLSearchParams()
-      queryParams.append('page', pagination.currentPage.toString())
-      queryParams.append('limit', '10')
-      
-      const response = await fetch(`/api/talent/jobs/saved?${queryParams.toString()}`)
+      const response = await fetch(`/api/talent/jobs/saved?page=${pagination.currentPage}&limit=${pagination.limit}`)
       
       if (!response.ok) {
+        if (response.status === 401) {
+          // Handle unauthorized (redirect to login)
+          return
+        }
         throw new Error('Failed to fetch saved jobs')
       }
       
       const data = await response.json()
       
       setSavedJobs(data.savedJobs || [])
+      setFilteredJobs(data.savedJobs || [])
       setPagination({
-        currentPage: data.pagination.page,
-        totalPages: data.pagination.pages,
-        totalSavedJobs: data.pagination.total
+        ...pagination,
+        totalPages: data.pagination?.totalPages || 1,
+        totalJobs: data.pagination?.totalJobs || 0
       })
     } catch (error) {
       console.error('Error fetching saved jobs:', error)
@@ -96,252 +115,244 @@ export default function SavedJobs({ onJobSelect }: SavedJobsProps) {
     }
   }
 
-  // Handle page change
-  const handlePageChange = (newPage: number) => {
-    setPagination({ ...pagination, currentPage: newPage })
-  }
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-
-  // Handle remove saved job
   const handleRemoveSavedJob = async (jobId: string) => {
     try {
-      const response = await fetch(`/api/talent/jobs/save?jobId=${jobId}`, {
-        method: 'DELETE'
+      const response = await fetch(`/api/talent/jobs/${jobId}/unsave`, {
+        method: 'POST'
       })
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to remove job')
+        throw new Error('Failed to remove job from saved list')
       }
       
-      // Remove job from list
-      setSavedJobs(savedJobs.filter(job => job.jobId._id !== jobId))
-      setSuccessMessage('Job removed from saved jobs')
+      // Update local state
+      setSavedJobs(prevJobs => prevJobs.filter(job => job.jobId._id !== jobId))
       
-      // Update pagination
-      if (savedJobs.length === 1 && pagination.currentPage > 1) {
-        setPagination({ ...pagination, currentPage: pagination.currentPage - 1 })
-      } else {
-        fetchSavedJobs()
-      }
+      setSuccessMessage('Job removed from saved list')
       
-      // Close dialog
-      setShowDeleteDialog(null)
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage('')
+      }, 3000)
     } catch (error) {
       console.error('Error removing saved job:', error)
-      setError(error instanceof Error ? error.message : 'Failed to remove job')
+      setError('Failed to remove job. Please try again later.')
     }
   }
 
-  // Handle update notes
   const handleUpdateNotes = async () => {
     if (!editingNotes) return
     
     try {
-      const response = await fetch('/api/talent/jobs/save/notes', {
-        method: 'PUT',
+      const response = await fetch(`/api/talent/jobs/saved/${editingNotes.id}/notes`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          savedJobId: editingNotes.id,
-          notes: editingNotes.notes
-        })
+        body: JSON.stringify({ notes: editingNotes.notes })
       })
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update notes')
+        throw new Error('Failed to update notes')
       }
       
-      // Update job in list
-      setSavedJobs(savedJobs.map(job => 
-        job._id === editingNotes.id 
-          ? { ...job, notes: editingNotes.notes } 
-          : job
-      ))
+      // Update local state
+      setSavedJobs(prevJobs => 
+        prevJobs.map(job => 
+          job._id === editingNotes.id 
+            ? { ...job, notes: editingNotes.notes } 
+            : job
+        )
+      )
       
-      setSuccessMessage('Notes updated successfully')
       setEditingNotes(null)
+      setSuccessMessage('Notes updated successfully')
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage('')
+      }, 3000)
     } catch (error) {
       console.error('Error updating notes:', error)
-      setError(error instanceof Error ? error.message : 'Failed to update notes')
+      setError('Failed to update notes. Please try again later.')
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    setPagination({ ...pagination, currentPage: page })
+  }
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+  }
+
+  const renderSavedJobCard = (savedJob: SavedJob) => {
+    const job = savedJob.jobId
+    
+    return (
+      <Card key={savedJob._id} className="mb-4 hover:shadow-md transition-shadow">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-lg font-semibold">{job.title}</CardTitle>
+              <CardDescription className="flex items-center mt-1">
+                <Building className="h-4 w-4 mr-1" />
+                {job.company}
+              </CardDescription>
+            </div>
+            <div className="flex items-center">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setShowDeleteConfirm(job._id)}
+              >
+                <Trash2 className="h-5 w-5 text-red-500" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pb-2">
+          <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex items-center text-sm text-gray-600">
+              <MapPin className="h-4 w-4 mr-1" />
+              {job.location}
+              {job.remote && " (Remote)"}
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <Briefcase className="h-4 w-4 mr-1" />
+              {job.jobType}
+            </div>
+            {job.salary && (
+              <div className="flex items-center text-sm text-gray-600">
+                <CreditCard className="h-4 w-4 mr-1" />
+                {job.salary.currency} {job.salary.min.toLocaleString()} - {job.salary.max.toLocaleString()}
+              </div>
+            )}
+          </div>
+          
+          {savedJob.notes && editingNotes?.id !== savedJob._id && (
+            <div className="bg-gray-50 p-3 rounded-md mb-3">
+              <div className="flex justify-between items-start mb-1">
+                <h4 className="text-sm font-medium">Your Notes</h4>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6" 
+                  onClick={() => setEditingNotes({ id: savedJob._id, notes: savedJob.notes })}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
+              </div>
+              <p className="text-sm text-gray-600">{savedJob.notes}</p>
+            </div>
+          )}
+          
+          {editingNotes?.id === savedJob._id && (
+            <div className="mb-3">
+              <div className="flex justify-between items-center mb-1">
+                <h4 className="text-sm font-medium">Edit Notes</h4>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6" 
+                    onClick={() => setEditingNotes(null)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6" 
+                    onClick={handleUpdateNotes}
+                  >
+                    <Save className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+              <Textarea
+                value={editingNotes.notes}
+                onChange={(e) => setEditingNotes({ ...editingNotes, notes: e.target.value })}
+                className="text-sm min-h-[80px]"
+                placeholder="Add your notes about this job..."
+              />
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex justify-between pt-2">
+          <div className="text-xs text-gray-500">
+            Saved on {new Date(savedJob.savedDate).toLocaleDateString()}
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onJobSelect(job)}
+            >
+              View Details
+            </Button>
+            <Button 
+              size="sm"
+              disabled={job.isApplied}
+            >
+              {job.isApplied ? 'Applied' : 'Apply Now'}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+    )
   }
 
   return (
     <div>
-      <div className="mb-4">
-        <h2 className="text-xl font-bold mb-2">Saved Jobs</h2>
-        <p className="text-muted-foreground">
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Saved Jobs</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Jobs you've saved for later
         </p>
       </div>
       
       {error && (
-        <div className="bg-red-50 text-red-700 p-3 rounded-md mb-4">
-          <AlertCircle className="h-4 w-4 inline mr-1" />
+        <div className="bg-red-100 text-red-800 p-3 rounded-lg mb-4">
           {error}
         </div>
       )}
       
       {successMessage && (
-        <div className="bg-green-50 text-green-700 p-3 rounded-md mb-4">
-          <Check className="h-4 w-4 inline mr-1" />
+        <div className="bg-green-100 text-green-800 p-3 rounded-lg mb-4">
           {successMessage}
         </div>
       )}
       
+      <div className="mb-4">
+        <Input
+          placeholder="Search saved jobs..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="max-w-md"
+        />
+      </div>
+      
       {isLoading ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
         </div>
-      ) : savedJobs.length > 0 ? (
-        <div className="space-y-4">
-          {savedJobs.map((savedJob) => (
-            <Card key={savedJob._id} className="mb-4">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg">{savedJob.jobId.title}</CardTitle>
-                    <CardDescription className="flex items-center mt-1">
-                      <Building className="h-4 w-4 mr-1" />
-                      {savedJob.jobId.company}
-                    </CardDescription>
-                  </div>
-                  <div className="flex space-x-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => setShowDeleteDialog(savedJob.jobId._id)}
-                    >
-                      <Trash2 className="h-5 w-5 text-red-500" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pb-2">
-                <div className="flex flex-wrap gap-2 mb-2">
-                  <Badge variant="outline" className="flex items-center">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    {savedJob.jobId.location}
-                    {savedJob.jobId.remote && " (Remote)"}
-                  </Badge>
-                  <Badge variant="outline" className="flex items-center">
-                    <Briefcase className="h-3 w-3 mr-1" />
-                    {savedJob.jobId.jobType}
-                  </Badge>
-                  <Badge variant="outline" className="flex items-center">
-                    <Clock className="h-3 w-3 mr-1" />
-                    Posted on {formatDate(savedJob.jobId.postedDate)}
-                  </Badge>
-                  <Badge variant="outline" className="flex items-center">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    Saved on {formatDate(savedJob.savedDate)}
-                  </Badge>
-                </div>
-                
-                {savedJob.jobId.salary?.min && savedJob.jobId.salary?.max && (
-                  <div className="flex items-center text-sm text-muted-foreground mb-2">
-                    <CreditCard className="h-4 w-4 mr-1" />
-                    {savedJob.jobId.salary.min.toLocaleString()} - {savedJob.jobId.salary.max.toLocaleString()} {savedJob.jobId.salary.currency}
-                  </div>
-                )}
-                
-                {savedJob.notes && editingNotes?.id !== savedJob._id && (
-                  <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-                    <div className="flex justify-between items-start">
-                      <h4 className="text-sm font-medium mb-1">Your Notes</h4>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6"
-                        onClick={() => setEditingNotes({ id: savedJob._id, notes: savedJob.notes })}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line">
-                      {savedJob.notes}
-                    </p>
-                  </div>
-                )}
-                
-                {editingNotes?.id === savedJob._id && (
-                  <div className="mt-3">
-                    <div className="flex justify-between items-center mb-1">
-                      <h4 className="text-sm font-medium">Edit Notes</h4>
-                      <div className="flex space-x-1">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6"
-                          onClick={() => setEditingNotes(null)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6"
-                          onClick={handleUpdateNotes}
-                        >
-                          <Save className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <Textarea
-                      value={editingNotes.notes}
-                      onChange={(e) => setEditingNotes({ ...editingNotes, notes: e.target.value })}
-                      className="text-sm"
-                      placeholder="Add notes about this job..."
-                    />
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter className="pt-2">
-                <div className="flex justify-between w-full">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => onJobSelect(savedJob.jobId)}
-                  >
-                    View Job Details
-                  </Button>
-                  <Button 
-                    variant={savedJob.jobId.isApplied ? "outline" : "default"} 
-                    size="sm"
-                    disabled={savedJob.jobId.isApplied}
-                    onClick={() => {
-                      onJobSelect(savedJob.jobId)
-                      // This would trigger the apply form in the parent component
-                    }}
-                  >
-                    {savedJob.jobId.isApplied ? (
-                      <>
-                        <Check className="h-4 w-4 mr-1" />
-                        Applied
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-1" />
-                        Apply
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
+      ) : filteredJobs.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <BookmarkCheck className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No Saved Jobs</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
+            You haven't saved any jobs yet. Browse jobs and click the bookmark icon to save them for later.
+          </p>
+          <Button onClick={() => window.location.href = '#browse'}>
+            Browse Jobs
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div>
+            {filteredJobs.map(savedJob => renderSavedJobCard(savedJob))}
+          </div>
           
           {/* Pagination */}
           {pagination.totalPages > 1 && (
@@ -350,54 +361,69 @@ export default function SavedJobs({ onJobSelect }: SavedJobsProps) {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
                   disabled={pagination.currentPage === 1}
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 
-                <span className="text-sm">
-                  Page {pagination.currentPage} of {pagination.totalPages}
-                </span>
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                  .filter(page => 
+                    page === 1 || 
+                    page === pagination.totalPages || 
+                    Math.abs(page - pagination.currentPage) <= 1
+                  )
+                  .map((page, i, arr) => (
+                    <React.Fragment key={page}>
+                      {i > 0 && arr[i - 1] !== page - 1 && (
+                        <span className="text-gray-500">...</span>
+                      )}
+                      <Button
+                        variant={pagination.currentPage === page ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => handlePageChange(page)}
+                      >
+                        {page}
+                      </Button>
+                    </React.Fragment>
+                  ))
+                }
                 
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
                   disabled={pagination.currentPage === pagination.totalPages}
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           )}
-        </div>
-      ) : (
-        <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <Bookmark className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-          <h3 className="text-lg font-medium mb-1">No saved jobs found</h3>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            You haven't saved any jobs yet. Browse jobs and click the bookmark icon to save them for later.
-          </p>
-        </div>
+        </>
       )}
       
-      {/* Delete confirmation dialog */}
-      <Dialog open={!!showDeleteDialog} onOpenChange={(open) => !open && setShowDeleteDialog(null)}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm !== null} onOpenChange={() => setShowDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Remove Saved Job</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove this job from your saved jobs? This action cannot be undone.
+              Are you sure you want to remove this job from your saved list? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(null)}>
+              Cancel
+            </Button>
             <Button 
-              variant="destructive"
-              onClick={() => showDeleteDialog && handleRemoveSavedJob(showDeleteDialog)}
+              variant="destructive" 
+              onClick={() => {
+                if (showDeleteConfirm) {
+                  handleRemoveSavedJob(showDeleteConfirm)
+                  setShowDeleteConfirm(null)
+                }
+              }}
             >
               Remove
             </Button>

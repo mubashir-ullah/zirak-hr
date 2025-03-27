@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { 
   Award, CheckCircle, Clock, AlertTriangle, 
   ChevronRight, RefreshCw, BookOpen, Trophy,
-  BarChart, CheckCircle2, Info
+  BarChart, CheckCircle2, Info, Lightbulb,
+  ThumbsUp, Briefcase, Users
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,7 +20,9 @@ import { toast } from '@/components/ui/use-toast'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import TestTakingView from './skills/TestTakingView'
 import TestResultsView from './skills/TestResultsView'
-import VerifiedSkillBadge from './skills/VerifiedSkillBadge';
+import VerifiedSkillBadge from './skills/VerifiedSkillBadge'
+import SkillSelfAssessment from './skills/SkillSelfAssessment'
+import SkillEndorsement from './skills/SkillEndorsement';
 
 interface SkillTest {
   _id: string

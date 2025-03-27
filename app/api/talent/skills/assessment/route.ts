@@ -1,15 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { connectToDatabase } from '@/lib/mongodb';
-import TechnicalSkill from '@/app/models/technicalSkill';
-import SkillAssessment from '@/app/models/skillAssessment';
-import SkillAnalytics from '@/app/models/skillAnalytics';
-import TalentProfile from '@/app/models/talentProfile';
-import mongoose from 'mongoose';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+
+// Define types for our data structures
+interface Question {
+  id: string;
+  text: string;
+  options: Option[];
+  correctOptionId: string;
+  points: number;
+  difficulty: string;
+  type: string;
+}
+
+interface Option {
+  id: string;
+  text: string;
+}
+
+interface Answer {
+  questionId: string;
+  optionId: string;
+}
+
+interface Assessment {
+  id: string;
+  questions: Question[];
+  skill_id: string;
+  status: string;
+  score?: number;
+}
 
 // Helper function to fetch AI-generated questions
-async function fetchAIGeneratedQuestions(skillName: string, level: string, count: number = 10) {
+async function fetchAIGeneratedQuestions(skillName: string, level: string, count: number = 10): Promise<any[]> {
   try {
     // Call the Python FastAPI service for AI-generated questions
     const response = await fetch(`${process.env.AI_SERVICE_URL || 'http://localhost:8000'}/api/generate-quiz`, {
@@ -19,30 +42,31 @@ async function fetchAIGeneratedQuestions(skillName: string, level: string, count
       },
       body: JSON.stringify({
         skill: skillName,
-        level: level,
-        count: count
+        level,
+        count
       }),
-      // Set a timeout to prevent hanging if the service is down
-      signal: AbortSignal.timeout(5000)
     });
-
+    
     if (!response.ok) {
-      throw new Error(`Failed to fetch AI-generated questions: ${response.statusText}`);
+      throw new Error(`Failed to fetch AI questions: ${response.statusText}`);
     }
-
+    
     const data = await response.json();
-    return data.questions;
+    return data.questions || [];
+    
   } catch (error) {
     console.error('Error fetching AI-generated questions:', error);
-    // Return null to indicate we should fall back to default questions
-    return null;
+    // Return empty array instead of null
+    return [];
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Verify authentication
-    const session = await getServerSession(authOptions);
+    const supabase = createServerComponentClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
+    
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -55,132 +79,31 @@ export async function GET(request: NextRequest) {
     const skillId = searchParams.get('skillId') || '';
     const skillName = searchParams.get('skill') || '';
     
-    // Connect to the database
-    const { db } = await connectToDatabase();
-    
-    // If requesting by skill name
-    if (skillName) {
-      // Find the skill
-      const skill = await TechnicalSkill.findOne({ 
-        name: { $regex: new RegExp(`^${skillName}$`, 'i') } 
-      });
-      
-      if (!skill) {
-        return NextResponse.json(
-          { error: 'Skill not found' },
-          { status: 404 }
-        );
-      }
-      
-      // Check if user already has a pending or in-progress assessment for this skill
-      const existingAssessment = await SkillAssessment.findOne({
-        userId: new mongoose.Types.ObjectId(userId),
-        skillName: { $regex: new RegExp(`^${skillName}$`, 'i') },
-        status: { $in: ['pending', 'in_progress'] }
-      });
-      
-      if (existingAssessment) {
-        return NextResponse.json({
-          assessment: existingAssessment
-        });
-      }
-      
-      // Get user's proficiency level for this skill
-      const talentProfile = await TalentProfile.findOne({ userId: new mongoose.Types.ObjectId(userId) });
-      let proficiencyLevel = 'intermediate';
-      
-      if (talentProfile && talentProfile.skills) {
-        const userSkill = talentProfile.skills.find(s => 
-          s.name.toLowerCase() === skillName.toLowerCase()
-        );
-        
-        if (userSkill && userSkill.proficiency) {
-          proficiencyLevel = userSkill.proficiency;
-        }
-      }
-      
-      // Generate a new assessment based on the user's proficiency level
-      const assessment = await SkillAssessment.generateAssessment(
-        skill._id,
-        skill.name,
-        new mongoose.Types.ObjectId(userId),
-        proficiencyLevel as any,
-        'quiz'
-      );
-      
-      // Try to enhance the assessment with AI-generated questions if available
-      try {
-        const aiQuestions = await fetchAIGeneratedQuestions(
-          skill.name, 
-          proficiencyLevel, 
-          10
-        );
-        
-        if (aiQuestions && Array.isArray(aiQuestions) && aiQuestions.length > 0) {
-          // Format AI questions to match our schema
-          const formattedQuestions = aiQuestions.map((q, index) => ({
-            id: `q-${index}`,
-            text: q.question,
-            options: q.options.map((opt, optIndex) => ({
-              id: `q-${index}-opt-${optIndex}`,
-              text: opt
-            })),
-            correctOptionId: `q-${index}-opt-${q.correctOptionIndex}`,
-            type: 'multiple_choice',
-            difficulty: proficiencyLevel,
-            points: q.difficulty === 'hard' ? 3 : q.difficulty === 'medium' ? 2 : 1
-          }));
-          
-          // Update the assessment with AI-generated questions
-          assessment.questions = formattedQuestions;
-          await assessment.save();
-        }
-      } catch (aiError) {
-        console.error('Error enhancing assessment with AI questions:', aiError);
-        // Continue with default questions if AI service fails
-      }
-      
-      // Update analytics for assessment creation
-      try {
-        await SkillAnalytics.findOneAndUpdate(
-          { skillName: skill.name },
-          { 
-            $inc: { 'metrics.assessmentsTaken': 1 },
-            $set: { 'lastUpdated': new Date() }
-          },
-          { upsert: true }
-        );
-      } catch (analyticsError) {
-        console.error('Error updating skill analytics:', analyticsError);
-        // Continue even if analytics update fails
-      }
-      
-      return NextResponse.json({
-        assessment
-      });
-    }
-    
-    // Build the query for normal assessment listing
-    let query: any = { userId: new mongoose.Types.ObjectId(userId) };
+    // Get user's skill assessments
+    let query = supabase
+      .from('user_skill_assessments')
+      .select('*, skill:skill_id(*)')
+      .eq('user_id', userId);
     
     if (status) {
-      query.status = status;
+      query = query.eq('status', status);
     }
     
     if (skillId) {
-      query.skillId = new mongoose.Types.ObjectId(skillId);
+      query = query.eq('skill_id', skillId);
     }
     
-    // Fetch assessments
-    const assessments = await SkillAssessment.find(query)
-      .sort({ createdAt: -1 })
-      .lean();
+    if (skillName) {
+      query = query.eq('skill:skill_id(name)', skillName);
+    }
     
-    return NextResponse.json({
-      assessments,
-      count: assessments.length
-    });
+    const { data: assessments, error } = await query;
     
+    if (error) {
+      throw error;
+    }
+    
+    return NextResponse.json({ assessments: assessments || [] });
   } catch (error) {
     console.error('Error fetching skill assessments:', error);
     return NextResponse.json(
@@ -190,35 +113,39 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Verify authentication
-    const session = await getServerSession(authOptions);
+    const supabase = createServerComponentClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
+    
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
-    const body = await request.json();
     
-    // Validate request body
-    if (!body.skillName) {
+    // Parse request body
+    const body = await request.json();
+    const { skillName, assessmentType, skillLevel } = body;
+    
+    if (!skillName) {
       return NextResponse.json(
         { error: 'Skill name is required' },
         { status: 400 }
       );
     }
     
-    const assessmentType = body.assessmentType || 'quiz';
-    const skillLevel = body.skillLevel || 'intermediate';
-    
-    // Connect to the database
-    const { db } = await connectToDatabase();
-    
     // Find the skill
-    const skill = await TechnicalSkill.findOne({ 
-      name: { $regex: new RegExp(`^${body.skillName}$`, 'i') } 
-    });
+    const { data: skill, error: skillError } = await supabase
+      .from('skills')
+      .select('id')
+      .eq('name', skillName)
+      .maybeSingle();
+    
+    if (skillError) {
+      throw skillError;
+    }
     
     if (!skill) {
       return NextResponse.json(
@@ -228,11 +155,17 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if user already has a pending or in-progress assessment for this skill
-    const existingAssessment = await SkillAssessment.findOne({
-      userId: new mongoose.Types.ObjectId(userId),
-      skillId: skill._id,
-      status: { $in: ['pending', 'in_progress'] }
-    });
+    const { data: existingAssessment, error: assessmentError } = await supabase
+      .from('user_skill_assessments')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('skill_id', skill.id)
+      .eq('status', 'pending')
+      .maybeSingle();
+    
+    if (assessmentError) {
+      throw assessmentError;
+    }
     
     if (existingAssessment) {
       return NextResponse.json({
@@ -242,18 +175,26 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate a new assessment
-    const assessment = await SkillAssessment.generateAssessment(
-      skill._id,
-      skill.name,
-      new mongoose.Types.ObjectId(userId),
-      skillLevel as any,
-      assessmentType as any
-    );
+    const { data: assessment, error: createError } = await supabase
+      .from('user_skill_assessments')
+      .insert({
+        user_id: userId,
+        skill_id: skill.id,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (createError) {
+      throw createError;
+    }
     
     // Try to enhance the assessment with AI-generated questions if available
     try {
       const aiQuestions = await fetchAIGeneratedQuestions(
-        skill.name, 
+        skillName, 
         skillLevel, 
         10
       );
@@ -269,45 +210,50 @@ export async function POST(request: NextRequest) {
           })),
           correctOptionId: `q-${index}-opt-${q.correctOptionIndex}`,
           type: 'multiple_choice',
-          difficulty: skillLevel,
+          difficulty: q.difficulty,
           points: q.difficulty === 'hard' ? 3 : q.difficulty === 'medium' ? 2 : 1
         }));
         
         // Update the assessment with AI-generated questions
-        assessment.questions = formattedQuestions;
-        await assessment.save();
+        const { error: updateError } = await supabase
+          .from('user_skill_assessments')
+          .update({
+            questions: formattedQuestions
+          })
+          .eq('id', assessment.id);
+        
+        if (updateError) {
+          throw updateError;
+        }
       }
     } catch (aiError) {
       console.error('Error enhancing assessment with AI questions:', aiError);
       // Continue with default questions if AI service fails
     }
     
-    // Update analytics
+    // Update analytics for assessment creation
     try {
-      let analytics = await SkillAnalytics.findOne({ skillId: skill._id });
-      
-      if (!analytics) {
-        // Create new analytics record if it doesn't exist
-        analytics = new SkillAnalytics({
-          skillId: skill._id,
-          skillName: skill.name,
-          category: skill.category
+      const { error: analyticsError } = await supabase
+        .from('skill_analytics')
+        .upsert({
+          skill_id: skill.id,
+          metrics: {
+            assessments_taken: 1
+          },
+          last_updated: new Date().toISOString()
         });
-      }
       
-      // Increment assessments taken
-      analytics.metrics.assessmentsTaken += 1;
-      await analytics.save();
+      if (analyticsError) {
+        throw analyticsError;
+      }
     } catch (analyticsError) {
       console.error('Error updating skill analytics:', analyticsError);
-      // Continue with the assessment creation even if analytics update fails
+      // Continue even if analytics update fails
     }
     
     return NextResponse.json({
-      message: 'Assessment created successfully',
       assessment
     });
-    
   } catch (error) {
     console.error('Error creating skill assessment:', error);
     return NextResponse.json(
@@ -317,41 +263,33 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// For submitting assessment answers
-export async function PUT(request: NextRequest) {
+export async function PUT(request: NextRequest): Promise<NextResponse> {
   try {
     // Verify authentication
-    const session = await getServerSession(authOptions);
+    const supabase = createServerComponentClient({ cookies });
+    const { data: { session } } = await supabase.auth.getSession();
+    
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
+    
+    // Parse request body
     const body = await request.json();
-    
-    // Validate request body
-    if (!body.assessmentId) {
-      return NextResponse.json(
-        { error: 'Assessment ID is required' },
-        { status: 400 }
-      );
-    }
-    
-    if (!body.answers) {
-      return NextResponse.json(
-        { error: 'Answers are required' },
-        { status: 400 }
-      );
-    }
-    
-    // Connect to the database
-    const { db } = await connectToDatabase();
+    const { assessmentId, answers, timeSpent } = body;
     
     // Find the assessment
-    const assessment = await SkillAssessment.findOne({
-      _id: new mongoose.Types.ObjectId(body.assessmentId),
-      userId: new mongoose.Types.ObjectId(userId)
-    });
+    const { data: assessment, error: assessmentError } = await supabase
+      .from('user_skill_assessments')
+      .select('id, questions, skill_id, status')
+      .eq('id', assessmentId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (assessmentError) {
+      throw assessmentError;
+    }
     
     if (!assessment) {
       return NextResponse.json(
@@ -367,48 +305,72 @@ export async function PUT(request: NextRequest) {
       );
     }
     
-    // Calculate time spent
-    const timeSpent = body.timeSpent || 0;
-    
-    // Process the answers and calculate score
-    const result = await assessment.completeAssessment(body.answers, timeSpent);
-    
-    // If assessment is passed, update the user's profile to mark the skill as verified
-    if (result.passed) {
-      await TalentProfile.findOneAndUpdate(
-        { 
-          userId: new mongoose.Types.ObjectId(userId),
-          'skills.name': assessment.skillName
-        },
-        { 
-          $set: { 
-            'skills.$.verified': true,
-            'skills.$.assessmentId': assessment._id 
-          } 
-        }
-      );
+    // Calculate score
+    const score = answers.reduce((acc: number, answer: Answer) => {
+      const question = assessment.questions.find((q: Question) => q.id === answer.questionId);
       
-      // Update analytics
-      try {
-        let analytics = await SkillAnalytics.findOne({ skillId: assessment.skillId });
-        
-        if (analytics) {
-          analytics.metrics.verifiedUsers += 1;
-          await analytics.save();
-        }
-      } catch (analyticsError) {
-        console.error('Error updating skill analytics:', analyticsError);
-        // Continue even if analytics update fails
+      if (question && question.correctOptionId === answer.optionId) {
+        return acc + question.points;
       }
+      
+      return acc;
+    }, 0);
+    
+    // Update assessment status and score
+    const { error: updateError } = await supabase
+      .from('user_skill_assessments')
+      .update({
+        status: 'completed',
+        score,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', assessmentId);
+    
+    if (updateError) {
+      throw updateError;
+    }
+    
+    // Update user's profile to mark the skill as verified
+    if (score >= 80) {
+      const { error: profileError } = await supabase
+        .from('user_skills')
+        .upsert({
+          user_id: userId,
+          skill_id: assessment.skill_id,
+          verified: true,
+          updated_at: new Date().toISOString()
+        });
+      
+      if (profileError) {
+        throw profileError;
+      }
+    }
+    
+    // Update analytics
+    try {
+      const { error: analyticsError } = await supabase
+        .from('skill_analytics')
+        .upsert({
+          skill_id: assessment.skill_id,
+          metrics: {
+            verified_users: score >= 80 ? 1 : 0
+          },
+          last_updated: new Date().toISOString()
+        });
+      
+      if (analyticsError) {
+        throw analyticsError;
+      }
+    } catch (analyticsError) {
+      console.error('Error updating skill analytics:', analyticsError);
+      // Continue even if analytics update fails
     }
     
     return NextResponse.json({
       message: 'Assessment completed successfully',
-      score: result.score,
-      passed: result.passed,
-      feedback: result.feedback
+      score,
+      passed: score >= 80
     });
-    
   } catch (error) {
     console.error('Error submitting assessment:', error);
     return NextResponse.json(

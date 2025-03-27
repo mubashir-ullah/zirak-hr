@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -32,17 +32,51 @@ interface Job {
 
 interface JobApplicationFormProps {
   job: Job;
-  onSubmit: (data: { coverLetter: string, resumeUrl: string, notes: string }) => void;
-  onCancel: () => void;
+  onSubmit: (data: any) => void;
+  onClose: () => void;
 }
 
-export default function JobApplicationForm({ job, onSubmit, onCancel }: JobApplicationFormProps) {
+export default function JobApplicationForm({ job, onSubmit, onClose }: JobApplicationFormProps) {
   const [coverLetter, setCoverLetter] = useState('')
   const [resumeUrl, setResumeUrl] = useState('')
   const [notes, setNotes] = useState('')
   const [useExistingResume, setUseExistingResume] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
+  const [userResumes, setUserResumes] = useState<{id: string, name: string, url: string}[]>([])
+  const [selectedResumeId, setSelectedResumeId] = useState('')
+  const [isLoadingResumes, setIsLoadingResumes] = useState(true)
+  
+  // Fetch user's resumes on component mount
+  useEffect(() => {
+    fetchUserResumes()
+  }, [])
+  
+  const fetchUserResumes = async () => {
+    try {
+      setIsLoadingResumes(true)
+      const response = await fetch('/api/talent/resumes')
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch resumes')
+      }
+      
+      const data = await response.json()
+      setUserResumes(data.resumes || [])
+      
+      // Select the first resume by default if available
+      if (data.resumes && data.resumes.length > 0) {
+        setSelectedResumeId(data.resumes[0].id)
+        setResumeUrl(data.resumes[0].url)
+      }
+    } catch (error) {
+      console.error('Error fetching resumes:', error)
+      setError('Failed to load your resumes. Please try uploading a new one.')
+    } finally {
+      setIsLoadingResumes(false)
+    }
+  }
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,103 +87,208 @@ export default function JobApplicationForm({ job, onSubmit, onCancel }: JobAppli
       return
     }
     
-    if (!useExistingResume && !resumeUrl.trim()) {
-      setError('Please provide a resume URL')
+    if (!useExistingResume && !resumeFile) {
+      setError('Please upload a resume')
+      return
+    }
+    
+    if (useExistingResume && !resumeUrl) {
+      setError('Please select a resume')
       return
     }
     
     setIsSubmitting(true)
     setError('')
     
-    // Submit form data
-    onSubmit({
-      coverLetter,
-      resumeUrl: useExistingResume ? '' : resumeUrl,
-      notes
+    // If uploading a new resume, upload it first
+    if (!useExistingResume && resumeFile) {
+      uploadResume(resumeFile)
+        .then(url => {
+          submitApplication(url)
+        })
+        .catch(err => {
+          console.error('Error uploading resume:', err)
+          setError('Failed to upload resume. Please try again.')
+          setIsSubmitting(false)
+        })
+    } else {
+      // Use existing resume
+      submitApplication(resumeUrl)
+    }
+  }
+  
+  const uploadResume = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('type', 'resume')
+    
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData
     })
+    
+    if (!response.ok) {
+      throw new Error('Failed to upload resume')
+    }
+    
+    const data = await response.json()
+    return data.url
+  }
+  
+  const submitApplication = (resumeUrl: string) => {
+    const applicationData = {
+      jobId: job._id,
+      coverLetter,
+      resumeUrl,
+      notes: notes.trim() || undefined
+    }
+    
+    onSubmit(applicationData)
+  }
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      
+      // Validate file type
+      if (!file.type.match('application/pdf|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+        setError('Please upload a PDF or Word document')
+        return
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('File size should be less than 5MB')
+        return
+      }
+      
+      setResumeFile(file)
+      setError('')
+    }
+  }
+  
+  const handleResumeSelect = (resumeId: string) => {
+    const resume = userResumes.find(r => r.id === resumeId)
+    if (resume) {
+      setSelectedResumeId(resumeId)
+      setResumeUrl(resume.url)
+    }
   }
   
   return (
-    <Card className="h-full overflow-auto">
-      <form onSubmit={handleSubmit}>
-        <CardHeader className="pb-2">
-          <Button 
-            type="button"
-            variant="ghost" 
-            size="sm" 
-            className="mb-2 w-fit"
-            onClick={onCancel}
-          >
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <Button variant="ghost" size="sm" onClick={onClose} className="mb-2">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Job Details
+            Back to Job
           </Button>
-          
-          <CardTitle className="text-xl">Apply for {job.title}</CardTitle>
-          <CardDescription>
-            Complete the application form to apply for this position at {job.company}
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
+          <h1 className="text-2xl font-bold">Apply for {job.title}</h1>
+          <p className="text-gray-600">{job.company} • {job.location}</p>
+        </div>
+      </div>
+      
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      <form onSubmit={handleSubmit}>
+        <div className="space-y-6">
           <div>
-            <Label htmlFor="coverLetter" className="text-base font-medium">
-              Cover Letter <span className="text-red-500">*</span>
-            </Label>
-            <p className="text-sm text-muted-foreground mb-2">
-              Introduce yourself and explain why you're a good fit for this position
-            </p>
-            <Textarea
-              id="coverLetter"
-              placeholder="Write your cover letter here..."
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-              className="min-h-[200px]"
-              required
-            />
-          </div>
-          
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <input
-                type="checkbox"
-                id="useExistingResume"
-                checked={useExistingResume}
-                onChange={() => setUseExistingResume(!useExistingResume)}
-                className="rounded border-gray-300 text-primary focus:ring-primary"
-              />
-              <Label htmlFor="useExistingResume" className="text-sm font-medium cursor-pointer">
-                Use my existing resume
-              </Label>
+            <h2 className="text-lg font-semibold mb-4">Resume</h2>
+            
+            <div className="flex gap-4 mb-4">
+              <Button
+                type="button"
+                variant={useExistingResume ? "default" : "outline"}
+                onClick={() => setUseExistingResume(true)}
+                className="flex-1"
+              >
+                Use Existing Resume
+              </Button>
+              <Button
+                type="button"
+                variant={!useExistingResume ? "default" : "outline"}
+                onClick={() => setUseExistingResume(false)}
+                className="flex-1"
+              >
+                Upload New Resume
+              </Button>
             </div>
             
-            {!useExistingResume && (
-              <div>
-                <Label htmlFor="resumeUrl" className="text-base font-medium">
-                  Resume URL <span className="text-red-500">*</span>
-                </Label>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Provide a link to your resume (Google Drive, Dropbox, etc.)
-                </p>
-                <div className="flex gap-2">
+            {useExistingResume ? (
+              <div className="space-y-4">
+                {isLoadingResumes ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : userResumes.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {userResumes.map(resume => (
+                      <div
+                        key={resume.id}
+                        className={`border rounded-lg p-4 cursor-pointer ${
+                          selectedResumeId === resume.id ? 'border-primary bg-primary/5' : ''
+                        }`}
+                        onClick={() => handleResumeSelect(resume.id)}
+                      >
+                        <div className="flex items-start">
+                          <FileText className="h-10 w-10 text-primary mr-3" />
+                          <div>
+                            <p className="font-medium">{resume.name}</p>
+                            <p className="text-sm text-gray-500">
+                              Last updated: {new Date(resume.id.split('-')[0]).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 bg-gray-50 rounded-lg">
+                    <FileText className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                    <h3 className="text-lg font-medium mb-1">No Resumes Found</h3>
+                    <p className="text-gray-500 mb-4">
+                      You don't have any resumes saved. Please upload a new one.
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={() => setUseExistingResume(false)}
+                    >
+                      Upload Resume
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <Upload className="h-10 w-10 mx-auto text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500 mb-2">
+                    Upload your resume (PDF or Word, max 5MB)
+                  </p>
                   <Input
-                    id="resumeUrl"
-                    placeholder="https://drive.google.com/your-resume"
-                    value={resumeUrl}
-                    onChange={(e) => setResumeUrl(e.target.value)}
-                    className="flex-grow"
-                    required={!useExistingResume}
+                    type="file"
+                    id="resume"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileChange}
+                    className="hidden"
                   />
-                  <Button type="button" variant="outline" className="shrink-0">
-                    <Upload className="h-4 w-4 mr-1" />
-                    Upload
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('resume')?.click()}
+                  >
+                    Select File
                   </Button>
+                  {resumeFile && (
+                    <p className="mt-2 text-sm font-medium">
+                      Selected: {resumeFile.name}
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -158,32 +297,43 @@ export default function JobApplicationForm({ job, onSubmit, onCancel }: JobAppli
           <Separator />
           
           <div>
-            <Label htmlFor="notes" className="text-base font-medium">
-              Additional Notes (Optional)
-            </Label>
-            <p className="text-sm text-muted-foreground mb-2">
-              Any additional information you'd like to share with the employer
-            </p>
-            <Textarea
-              id="notes"
-              placeholder="Add any additional notes here..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[100px]"
-            />
+            <h2 className="text-lg font-semibold mb-4">Cover Letter</h2>
+            <div className="space-y-2">
+              <Label htmlFor="coverLetter">Write a cover letter to introduce yourself</Label>
+              <Textarea
+                id="coverLetter"
+                value={coverLetter}
+                onChange={(e) => setCoverLetter(e.target.value)}
+                placeholder="Explain why you're a good fit for this position..."
+                className="min-h-[200px]"
+              />
+            </div>
           </div>
-        </CardContent>
+          
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Additional Notes</h2>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Optional: Add any additional information</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Any additional information you'd like to share..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+        </div>
         
-        <CardFooter className="flex justify-between border-t pt-6">
-          <Button 
+        <div className="flex justify-between mt-8">
+          <Button
             type="button"
-            variant="outline" 
-            onClick={onCancel}
+            variant="outline"
+            onClick={onClose}
           >
             Cancel
           </Button>
-          
-          <Button 
+          <Button
             type="submit"
             disabled={isSubmitting}
           >
@@ -199,8 +349,8 @@ export default function JobApplicationForm({ job, onSubmit, onCancel }: JobAppli
               </>
             )}
           </Button>
-        </CardFooter>
+        </div>
       </form>
-    </Card>
+    </div>
   )
 }

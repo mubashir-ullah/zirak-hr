@@ -47,11 +47,11 @@ interface Job {
 interface JobDetailViewProps {
   job: Job;
   onApply: () => void;
-  onSave: () => void;
-  onBack: () => void;
+  onBookmark: () => void;
+  onClose: () => void;
 }
 
-export default function JobDetailView({ job, onApply, onSave, onBack }: JobDetailViewProps) {
+export default function JobDetailView({ job, onApply, onBookmark, onClose }: JobDetailViewProps) {
   const [showFullDescription, setShowFullDescription] = useState(false)
   
   // Format date
@@ -95,279 +95,299 @@ export default function JobDetailView({ job, onApply, onSave, onBack }: JobDetai
   }
   
   return (
-    <Card className="h-full overflow-auto">
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mb-2"
-            onClick={onBack}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Jobs
-          </Button>
-          
-          <div className="flex space-x-2">
-            <Button 
-              variant={job.isSaved ? "outline" : "secondary"} 
-              size="sm"
-              onClick={onSave}
-            >
-              {job.isSaved ? (
-                <>
-                  <BookmarkCheck className="h-4 w-4 mr-1 text-primary" />
-                  Saved
-                </>
-              ) : (
-                <>
-                  <Bookmark className="h-4 w-4 mr-1" />
-                  Save
-                </>
-              )}
-            </Button>
-            
-            <Button 
-              variant={job.isApplied ? "outline" : "default"} 
-              size="sm"
-              disabled={job.isApplied}
-              onClick={onApply}
-            >
-              {job.isApplied ? (
-                <>
-                  <Check className="h-4 w-4 mr-1" />
-                  Applied
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-1" />
-                  Apply Now
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-        
-        <CardTitle className="text-2xl">{job.title}</CardTitle>
-        <CardDescription className="flex items-center mt-1 text-base">
-          <Building className="h-4 w-4 mr-1" />
-          {job.company}
-        </CardDescription>
-        
-        <div className="flex flex-wrap gap-2 mt-3">
-          <Badge variant="outline" className="flex items-center">
-            <MapPin className="h-3 w-3 mr-1" />
-            {job.location}
-            {job.remote && " (Remote)"}
-          </Badge>
-          <Badge variant="outline" className="flex items-center">
-            <Briefcase className="h-3 w-3 mr-1" />
-            {formatJobType(job.jobType)}
-          </Badge>
-          <Badge variant="outline" className="flex items-center">
-            <Award className="h-3 w-3 mr-1" />
-            {formatExperienceLevel(job.experienceLevel)}
-          </Badge>
-          {job.visaSponsorship && (
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              <Shield className="h-3 w-3 mr-1" />
-              Visa Sponsorship
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      
-      <CardContent className="pb-6">
-        {job.matchPercentage !== undefined && (
-          <div className="mb-4 p-4 bg-primary/10 rounded-lg">
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-medium">Match Score</span>
-              <span className="font-medium">{job.matchPercentage}%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div 
-                className="bg-primary rounded-full h-2.5" 
-                style={{ width: `${job.matchPercentage}%` }}
-              ></div>
-            </div>
-            <p className="text-sm mt-2">
-              <CheckCircle className="h-4 w-4 inline mr-1 text-primary" />
-              {job.matchedSkills} of your skills match this job
-            </p>
-          </div>
-        )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">JOB DETAILS</h3>
-            <ul className="space-y-2">
-              <li className="flex items-start">
-                <CreditCard className="h-5 w-5 mr-2 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium">Salary Range</span>
-                  <p className="text-sm">
-                    {job.salary?.min && job.salary?.max 
-                      ? `${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()} ${job.salary.currency}`
-                      : 'Not specified'
-                    }
-                  </p>
-                </div>
-              </li>
-              
-              <li className="flex items-start">
-                <Calendar className="h-5 w-5 mr-2 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium">Application Deadline</span>
-                  <p className="text-sm">
-                    {formatDate(job.applicationDeadline)}
-                  </p>
-                </div>
-              </li>
-              
-              <li className="flex items-start">
-                <Clock className="h-5 w-5 mr-2 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium">Posted Date</span>
-                  <p className="text-sm">
-                    {formatDate(job.postedDate)}
-                  </p>
-                </div>
-              </li>
-              
-              <li className="flex items-start">
-                <Globe className="h-5 w-5 mr-2 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium">Industry</span>
-                  <p className="text-sm">
-                    {job.industry || 'Not specified'}
-                  </p>
-                </div>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">REQUIREMENTS</h3>
-            <ul className="space-y-2">
-              <li className="flex items-start">
-                <GraduationCap className="h-5 w-5 mr-2 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium">Education</span>
-                  <p className="text-sm">
-                    {job.educationLevel || 'Not specified'}
-                  </p>
-                </div>
-              </li>
-              
-              <li className="flex items-start">
-                <Languages className="h-5 w-5 mr-2 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium">German Level</span>
-                  <p className="text-sm">
-                    {job.germanLevel || 'Not specified'}
-                  </p>
-                </div>
-              </li>
-              
-              <li className="flex items-start">
-                <Building className="h-5 w-5 mr-2 text-muted-foreground mt-0.5" />
-                <div>
-                  <span className="font-medium">Company Size</span>
-                  <p className="text-sm">
-                    {job.companySize || 'Not specified'}
-                  </p>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-        
-        <Separator className="my-6" />
-        
-        <div className="mb-6">
-          <h3 className="text-lg font-medium mb-3">Job Description</h3>
-          <div className="text-sm whitespace-pre-line">
-            {truncateDescription(job.description)}
-            {job.description.length > 500 && (
-              <Button 
-                variant="link" 
-                className="p-0 h-auto mt-1"
-                onClick={() => setShowFullDescription(!showFullDescription)}
-              >
-                {showFullDescription ? 'Show less' : 'Show more'}
-              </Button>
-            )}
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <h3 className="text-lg font-medium mb-3">Requirements</h3>
-          {job.requirements && job.requirements.length > 0 ? (
-            <ul className="list-disc pl-5 space-y-1 text-sm">
-              {job.requirements.map((req, index) => (
-                <li key={index}>{req}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">No specific requirements listed.</p>
-          )}
-        </div>
-        
-        <div className="mb-6">
-          <h3 className="text-lg font-medium mb-3">Required Skills</h3>
-          <div className="flex flex-wrap gap-2">
-            {job.skills && job.skills.length > 0 ? (
-              job.skills.map((skill, index) => (
-                <Badge key={index} className="bg-primary/10 text-primary hover:bg-primary/20">
-                  {skill}
-                </Badge>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">No specific skills listed.</p>
-            )}
-          </div>
-        </div>
-        
-        {job.benefits && job.benefits.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-3">Benefits</h3>
-            <ul className="list-disc pl-5 space-y-1 text-sm">
-              {job.benefits.map((benefit, index) => (
-                <li key={index}>{benefit}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </CardContent>
-      
-      <CardFooter className="flex justify-between border-t pt-6">
-        <Button 
-          variant="outline" 
-          onClick={onBack}
-        >
+    <div className="p-6">
+      <div className="flex justify-between items-start mb-6">
+        <Button variant="ghost" size="sm" onClick={onClose} className="mb-4">
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back to Jobs
         </Button>
         
-        <Button 
-          variant={job.isApplied ? "outline" : "default"} 
-          disabled={job.isApplied}
-          onClick={onApply}
-          size="lg"
-        >
-          {job.isApplied ? (
-            <>
-              <Check className="h-4 w-4 mr-1" />
-              Applied
-            </>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={onBookmark}
+          >
+            {job.isSaved ? (
+              <>
+                <BookmarkCheck className="h-4 w-4 mr-1" />
+                Saved
+              </>
+            ) : (
+              <>
+                <Bookmark className="h-4 w-4 mr-1" />
+                Save Job
+              </>
+            )}
+          </Button>
+          
+          <Button 
+            size="sm"
+            disabled={job.isApplied}
+            onClick={onApply}
+          >
+            {job.isApplied ? (
+              <>
+                <Check className="h-4 w-4 mr-1" />
+                Applied
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-1" />
+                Apply Now
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+      
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-2">{job.title}</h1>
+        <div className="flex items-center text-gray-600 mb-2">
+          <Building className="h-4 w-4 mr-1" />
+          <span className="font-medium">{job.company}</span>
+        </div>
+        
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div className="flex items-center text-gray-600">
+            <MapPin className="h-4 w-4 mr-1" />
+            {job.location}
+            {job.remote && " (Remote)"}
+          </div>
+          
+          <div className="flex items-center text-gray-600">
+            <Briefcase className="h-4 w-4 mr-1" />
+            {formatJobType(job.jobType)}
+          </div>
+          
+          <div className="flex items-center text-gray-600">
+            <CreditCard className="h-4 w-4 mr-1" />
+            {job.salary.currency} {job.salary.min.toLocaleString()} - {job.salary.max.toLocaleString()}
+          </div>
+          
+          <div className="flex items-center text-gray-600">
+            <Calendar className="h-4 w-4 mr-1" />
+            Posted {formatDate(job.postedDate)}
+          </div>
+        </div>
+        
+        {job.matchPercentage && (
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-sm font-medium">Match Score</span>
+              <Badge className={
+                job.matchPercentage > 80 
+                  ? 'bg-green-100 text-green-800' 
+                  : job.matchPercentage > 60
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-gray-100 text-gray-800'
+              }>
+                {job.matchPercentage}% Match
+              </Badge>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`rounded-full h-2 ${
+                  job.matchPercentage > 80 
+                    ? 'bg-green-500' 
+                    : job.matchPercentage > 60
+                      ? 'bg-yellow-500'
+                      : 'bg-gray-500'
+                }`}
+                style={{ width: `${job.matchPercentage}%` }}
+              ></div>
+            </div>
+            {job.matchedSkills !== undefined && (
+              <p className="text-xs text-gray-500 mt-1">
+                {job.matchedSkills} of your skills match this job
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Experience</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-medium">{formatExperienceLevel(job.experienceLevel)}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Education</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-medium">{job.educationLevel || 'Not specified'}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">German Level</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-medium">{job.germanLevel || 'Not required'}</p>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">Job Description</h2>
+        <div className={`prose max-w-none ${!showFullDescription && 'line-clamp-6'}`}>
+          <p>{truncateDescription(job.description)}</p>
+        </div>
+        {job.description && job.description.length > 300 && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowFullDescription(!showFullDescription)}
+            className="mt-2"
+          >
+            {showFullDescription ? 'Show Less' : 'Show More'}
+          </Button>
+        )}
+      </div>
+      
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">Requirements</h2>
+        <ul className="list-disc pl-5 space-y-1">
+          {job.requirements && job.requirements.length > 0 ? (
+            job.requirements.map((requirement, index) => (
+              <li key={index} className="text-gray-700">{requirement}</li>
+            ))
           ) : (
-            <>
-              <Send className="h-4 w-4 mr-1" />
-              Apply Now
-            </>
+            <li className="text-gray-500">No specific requirements listed</li>
           )}
-        </Button>
-      </CardFooter>
-    </Card>
+        </ul>
+      </div>
+      
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">Skills</h2>
+        <div className="flex flex-wrap gap-2">
+          {job.skills && job.skills.length > 0 ? (
+            job.skills.map((skill, index) => (
+              <Badge key={index} variant="outline" className={
+                job.matchedSkills && job.matchedSkills > 0 && (job as any).matchedSkillsList?.includes(skill)
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : ''
+              }>
+                {skill}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-gray-500">No specific skills listed</span>
+          )}
+        </div>
+      </div>
+      
+      {job.benefits && job.benefits.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-3">Benefits</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {job.benefits.map((benefit, index) => (
+              <div key={index} className="flex items-start">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
+                <span>{benefit}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">Company Information</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Industry</p>
+            <p className="font-medium">{job.industry || 'Not specified'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Company Size</p>
+            <p className="font-medium">{job.companySize || 'Not specified'}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-3">Additional Information</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 mr-2 text-gray-500" />
+            <div>
+              <p className="text-sm text-gray-500">Application Deadline</p>
+              <p className="font-medium">
+                {job.applicationDeadline 
+                  ? formatDate(job.applicationDeadline) 
+                  : 'Not specified'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center">
+            <Globe className="h-4 w-4 mr-2 text-gray-500" />
+            <div>
+              <p className="text-sm text-gray-500">Remote Work</p>
+              <p className="font-medium">{job.remote ? 'Available' : 'Not available'}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center">
+            <Shield className="h-4 w-4 mr-2 text-gray-500" />
+            <div>
+              <p className="text-sm text-gray-500">Visa Sponsorship</p>
+              <p className="font-medium">{job.visaSponsorship ? 'Available' : 'Not available'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <Separator className="my-6" />
+      
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-gray-500">
+          Job ID: {job._id}
+        </p>
+        
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={onBookmark}
+          >
+            {job.isSaved ? (
+              <>
+                <BookmarkCheck className="h-4 w-4 mr-1" />
+                Saved
+              </>
+            ) : (
+              <>
+                <Bookmark className="h-4 w-4 mr-1" />
+                Save Job
+              </>
+            )}
+          </Button>
+          
+          <Button 
+            disabled={job.isApplied}
+            onClick={onApply}
+          >
+            {job.isApplied ? (
+              <>
+                <Check className="h-4 w-4 mr-1" />
+                Applied
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-1" />
+                Apply Now
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }
