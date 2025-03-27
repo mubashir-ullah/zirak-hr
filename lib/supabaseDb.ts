@@ -162,18 +162,29 @@ export const findUserByEmail = async (email: string): Promise<UserData | null> =
 };
 
 export const findUserById = async (id: string): Promise<UserData | null> => {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error('Error finding user by id:', error);
+  // Check if id is undefined or null
+  if (!id) {
+    console.error('Error finding user by id: No user ID provided');
     return null;
   }
 
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error finding user by id:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Exception in findUserById:', error);
+    return null;
+  }
 };
 
 export const updateUser = async (id: string, userData: Partial<UserData>): Promise<UserData | null> => {

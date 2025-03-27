@@ -1,40 +1,53 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 import TalentDashboard from '@/app/components/TalentDashboard'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 export default function TalentDashboardPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { user, status } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
   
   useEffect(() => {
     // If the user is not authenticated, redirect to login
     if (status === 'unauthenticated') {
       router.push('/login')
+      return
     }
     
     // If the user is authenticated but not a talent, redirect to role selection
-    if (status === 'authenticated' && session?.user?.role !== 'talent') {
-      router.push('/select-role')
+    if (status === 'authenticated' && user?.role !== 'talent') {
+      router.push('/role-selection')
+      return
     }
-  }, [status, session, router])
+
+    // If authentication check is complete, set loading to false
+    if (status !== 'loading') {
+      setIsLoading(false)
+    }
+  }, [status, user, router])
   
   // Show loading state while checking authentication
-  if (status === 'loading') {
+  if (isLoading || status === 'loading') {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+      <div className="min-h-screen flex flex-col justify-center items-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#D6FF00]"></div>
+        <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
       </div>
     )
   }
   
   // If authenticated and role is talent, show the dashboard
-  if (status === 'authenticated' && session?.user?.role === 'talent') {
+  if (status === 'authenticated' && user?.role === 'talent') {
     return <TalentDashboard />
   }
   
-  // Default return (should not reach here due to redirects)
-  return null
+  // Default loading state (should not reach here due to redirects)
+  return (
+    <div className="min-h-screen flex justify-center items-center bg-background">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#D6FF00]"></div>
+    </div>
+  )
 }

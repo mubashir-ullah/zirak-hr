@@ -1,51 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { connectToDatabase } from '@/lib/mongodb'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { findUserById } from '@/lib/supabaseDb'
+import { findUserByEmail } from '@/lib/database'
+import supabase from '@/lib/supabase'
 
 export async function GET(req: NextRequest) {
   try {
+    console.log('Profile summary API called');
+    
+    // Create a Supabase client
+    const supabase = createServerComponentClient({ cookies })
+    
     // Get the user session
-    const session = await getServerSession(authOptions)
+    const { data: { session } } = await supabase.auth.getSession()
     
     if (!session || !session.user) {
+      console.log('No session found, returning 401');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
     
-    // Connect to the database
-    const { db } = await connectToDatabase()
+    console.log(`Session found for user: ${session.user.id}`);
+    console.log(`User email: ${session.user.email}`);
     
-    // Find the user profile
-    const userProfile = await db.collection('users').findOne(
-      { email: session.user.email },
-      { projection: { 
-        fullName: 1, 
-        title: 1, 
-        profilePicture: 1,
-        _id: 0 
-      }}
-    )
+    // Try to find the user profile using Supabase - first try by ID
+    let userProfile = await findUserById(session.user.id);
     
+    // If not found by ID, try by email
+    if (!userProfile && session.user.email) {
+      console.log('User not found by ID, trying by email');
+      userProfile = await findUserByEmail(session.user.email);
+    }
+    
+    // If still not found, try to get basic info from the session
     if (!userProfile) {
+      console.log('User not found in database, using session data');
+      
+      // Create a minimal profile from the session data
+      const profileSummary = {
+        fullName: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+        title: session.user.user_metadata?.position || 'Talent',
+        profilePicture: session.user.user_metadata?.avatar_url || '/images/default-avatar.png'
+      }
+      
+      console.log('Returning minimal profile from session:', profileSummary);
+      
       return NextResponse.json(
-        { profile: { fullName: '', title: '', profilePicture: '' } },
+        { profile: profileSummary },
         { status: 200 }
       )
     }
     
+    console.log('User profile found:', userProfile.id);
+    
+    // Extract only the needed fields for the summary
+    // Handle avatar_url which might not be in the UserData type
+    const profilePicture = 
+      (userProfile as any).avatar_url || 
+      userProfile.resume_url || 
+      '/images/default-avatar.png';
+      
+    const profileSummary = {
+      fullName: userProfile.name || '',
+      title: userProfile.position || '',
+      profilePicture: profilePicture
+    }
+    
+    console.log('Returning profile summary:', profileSummary);
+    
     return NextResponse.json(
-      { profile: userProfile },
+      { profile: profileSummary },
       { status: 200 }
     )
     
   } catch (error) {
-    console.error('Error fetching profile summary:', error)
+    console.error('Error fetching profile summary:', error);
+    
+    // Return a default profile to prevent the UI from breaking
+    const defaultProfile = {
+      fullName: 'User',
+      title: 'Talent',
+      profilePicture: '/images/default-avatar.png'
+    };
+    
     return NextResponse.json(
-      { error: 'Failed to fetch profile summary' },
-      { status: 500 }
+      { 
+        profile: defaultProfile,
+        error: 'Failed to fetch profile summary, using default profile'
+      },
+      { status: 200 } // Return 200 with default data instead of 500 to prevent UI from breaking
     )
   }
 }

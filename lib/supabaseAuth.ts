@@ -67,6 +67,7 @@ export const signUpWithEmail = async (
     // Then, store additional user data in our users table
     const hashedPassword = await bcrypt.hash(password, 10);
     const userData = await createUser({
+      id: authData.user.id,
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
@@ -163,6 +164,7 @@ export const handleAuthCallback = async (): Promise<{ user: UserData | null; err
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
       
       userData = await createUser({
+        id: supabaseUser.id,
         name: supabaseUser.user_metadata.full_name || email.split('@')[0],
         email,
         password: hashedPassword,

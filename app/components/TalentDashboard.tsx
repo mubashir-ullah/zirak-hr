@@ -26,10 +26,12 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Footer } from './Footer'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function TalentDashboard() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
+  const { signOut } = useAuth()
   const [isOnline, setIsOnline] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'profile' | 'resume' | 'jobs' | 'applications' | 'skills' | 'settings'>('profile')
@@ -57,45 +59,64 @@ export default function TalentDashboard() {
   useEffect(() => {
     const fetchProfileSummary = async () => {
       try {
-        const response = await fetch('/api/talent/profile/summary')
+        console.log('Fetching profile summary data');
+        const response = await fetch('/api/talent/profile/summary');
         
         if (!response.ok) {
+          console.error('Profile summary response not OK:', response.status);
           if (response.status === 401) {
-            router.push('/login')
-            return
+            console.log('Unauthorized, redirecting to login');
+            router.push('/login');
+            return;
           }
-          throw new Error('Failed to fetch profile summary')
+          
+          // Don't throw error, just use default values
+          setProfileSummary({
+            fullName: 'User',
+            title: 'Talent',
+            profilePicture: '/images/default-avatar.png'
+          });
+          return;
         }
         
-        const data = await response.json()
+        const data = await response.json();
+        console.log('Profile summary data received:', data);
         
         if (data.profile) {
           setProfileSummary({
-            fullName: data.profile.fullName || '',
-            title: data.profile.title || '',
+            fullName: data.profile.fullName || 'User',
+            title: data.profile.title || 'Talent',
             profilePicture: data.profile.profilePicture || '/images/default-avatar.png'
-          })
+          });
+        } else {
+          // Fallback to default values if profile is missing
+          setProfileSummary({
+            fullName: 'User',
+            title: 'Talent',
+            profilePicture: '/images/default-avatar.png'
+          });
         }
       } catch (error) {
-        console.error('Error fetching profile summary:', error)
+        console.error('Error fetching profile summary:', error);
+        // Use default values on error
+        setProfileSummary({
+          fullName: 'User',
+          title: 'Talent',
+          profilePicture: '/images/default-avatar.png'
+        });
       }
-    }
+    };
     
-    fetchProfileSummary()
+    fetchProfileSummary();
   }, [router])
 
   // Handle logout
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-      })
-      
-      if (response.ok) {
-        router.push('/login')
-      }
+      await signOut();
+      router.push('/login');
     } catch (error) {
-      console.error('Logout failed:', error)
+      console.error('Logout failed:', error);
     }
   }
 

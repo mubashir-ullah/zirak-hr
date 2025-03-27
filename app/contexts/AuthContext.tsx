@@ -104,12 +104,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      // Clear any local state first
+      setUser(null);
+      setSession(null);
+      setStatus('unauthenticated');
+      
+      // Then sign out from Supabase
       const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      router.push('/')
+      if (error) {
+        console.error('Error during sign out:', error);
+        throw error;
+      }
+      
+      // Force navigation to home page
+      router.push('/');
+      router.refresh(); // Force a refresh to update the UI
     } catch (error) {
       console.error('Error logging out:', error)
-      throw error
+      // Even if there's an error, we should still try to redirect
+      router.push('/')
     }
   }
 
