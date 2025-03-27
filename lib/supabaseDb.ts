@@ -162,13 +162,13 @@ export const findUserByEmail = async (email: string): Promise<UserData | null> =
 };
 
 export const findUserById = async (id: string): Promise<UserData | null> => {
-  // Check if id is undefined or null
   if (!id) {
-    console.error('Error finding user by id: No user ID provided');
+    console.error('Invalid user ID provided to findUserById:', id);
     return null;
   }
 
   try {
+    console.log('Finding user by ID:', id);
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -177,6 +177,11 @@ export const findUserById = async (id: string): Promise<UserData | null> => {
 
     if (error) {
       console.error('Error finding user by id:', error);
+      return null;
+    }
+
+    if (!data) {
+      console.log('No user found with ID:', id);
       return null;
     }
 

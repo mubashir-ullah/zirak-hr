@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { User, AuthError, Session } from '@supabase/supabase-js'
-import { findUserById } from '@/lib/supabaseDb'
+import { findUserById, createUser } from '@/lib/supabaseDb'
 
 interface AuthUser {
   id: string;
@@ -68,21 +68,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Initial session check
     supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
-      if (currentSession?.user) {
-        const dbUser = await findUserById(currentSession.user.id);
-        setUser({
-          ...currentSession.user,
-          email_verified: dbUser?.email_verified || false,
-          role: dbUser?.role || null
-        } as AuthUser);
-        setSession(currentSession);
-        setStatus('authenticated');
-      } else {
+      try {
+        if (currentSession?.user) {
+          console.log('Current session user:', currentSession.user.id);
+          const dbUser = await findUserById(currentSession.user.id);
+          
+          if (dbUser) {
+            setUser({
+              ...currentSession.user,
+              email_verified: dbUser.email_verified || false,
+              role: dbUser.role || null
+            } as AuthUser);
+            setSession(currentSession);
+            setStatus('authenticated');
+          } else {
+            console.warn('User found in session but not in database:', currentSession.user.id);
+            // Create the user in the database if they don't exist
+            const { user: newUser, error } = await createUser({
+              id: currentSession.user.id,
+              name: currentSession.user.user_metadata?.full_name || '',
+              email: currentSession.user.email || '',
+              role: 'talent',
+              needs_role_selection: true,
+              email_verified: currentSession.user.email_confirmed_at ? true : false,
+              social_provider: currentSession.user.app_metadata?.provider || null
+            });
+            
+            if (newUser) {
+              setUser({
+                ...currentSession.user,
+                email_verified: newUser.email_verified || false,
+                role: newUser.role || null
+              } as AuthUser);
+              setSession(currentSession);
+              setStatus('authenticated');
+            } else {
+              console.error('Failed to create user in database:', error);
+              setUser(null);
+              setSession(null);
+              setStatus('unauthenticated');
+            }
+          }
+        } else {
+          setUser(null);
+          setSession(null);
+          setStatus('unauthenticated');
+        }
+      } catch (error) {
+        console.error('Error in auth session initialization:', error);
         setUser(null);
         setSession(null);
         setStatus('unauthenticated');
       }
-    })
+    }).catch(error => {
+      console.error('Error getting session:', error);
+      setUser(null);
+      setSession(null);
+      setStatus('unauthenticated');
+    });
 
     return () => subscription.unsubscribe()
   }, [supabase.auth])
