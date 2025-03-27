@@ -61,7 +61,28 @@
    - Test analytics reporting endpoints
    - Check job performance metrics
 
-## Phase 4: MongoDB Removal
+## Phase 4: Remaining API Routes Migration
+
+We've discovered additional API routes that still contain MongoDB references. These need to be migrated before we can fully remove MongoDB:
+
+1. **Admin Routes**
+   - `/api/admin/promote-user/route.ts` - For promoting users to admin role
+   - `/api/admin/users/route.ts` - For managing users in admin dashboard
+
+2. **Analytics Routes**
+   - `/api/analytics/applications/route.ts` - For application analytics
+   - `/api/analytics/departments/route.ts` - For department analytics
+
+3. **Talent Skills Routes**
+   - `/api/talent/skills/verified/route.ts` - For verified skills
+   - `/api/talent/skills/route.ts` - For managing skills
+   - `/api/talent/search/route.ts` - For searching talent profiles
+   - `/api/talent/save/route.ts` - For saving talent profiles
+
+4. **Test Route**
+   - `/api/test/route.ts` - For testing database connection
+
+## Phase 5: MongoDB Removal
 
 1. **Identify MongoDB Dependencies**
    - Search for remaining MongoDB imports and references
@@ -77,7 +98,7 @@
    - Remove MongoDB URI from environment variables
    - Document the changes in the project README
 
-## Phase 5: Final Verification and Documentation
+## Phase 6: Final Verification and Documentation
 
 1. **End-to-End Testing**
    - Perform a complete user journey test
@@ -99,8 +120,9 @@
 | Phase 1: Preparation | 1 hour | None |
 | Phase 2: Apply Migrations | 2 hours | Phase 1 |
 | Phase 3: Testing | 4-6 hours | Phase 2 |
-| Phase 4: MongoDB Removal | 1 hour | Phase 3 |
-| Phase 5: Documentation | 2 hours | Phase 4 |
+| Phase 4: Remaining API Routes Migration | 2 hours | Phase 3 |
+| Phase 5: MongoDB Removal | 1 hour | Phase 4 |
+| Phase 6: Documentation | 2 hours | Phase 5 |
 
 ## Rollback Plan
 

@@ -128,13 +128,28 @@ If issues are encountered:
 15. ✅ `/api/auth/link-account/route.ts` - Social account linking
 16. ✅ `/api/auth/link-callback/route.ts` - Social account callback
 
-### All API Routes Migrated! 🎉
+### Additional Routes Requiring Migration
 
-The migration of API routes from MongoDB to Supabase is now complete. The next steps are:
+We've discovered additional API routes that still contain MongoDB references:
 
-1. Run the migration script to apply all the changes
-2. Test the migrated routes to ensure they work as expected
-3. Remove the MongoDB dependency once testing is complete
+1. **Admin Routes**
+   - `/api/admin/promote-user/route.ts` - For promoting users to admin role
+   - `/api/admin/users/route.ts` - For managing users in admin dashboard
+
+2. **Analytics Routes**
+   - `/api/analytics/applications/route.ts` - For application analytics
+   - `/api/analytics/departments/route.ts` - For department analytics
+
+3. **Talent Skills Routes**
+   - `/api/talent/skills/verified/route.ts` - For verified skills
+   - `/api/talent/skills/route.ts` - For managing skills
+   - `/api/talent/search/route.ts` - For searching talent profiles
+   - `/api/talent/save/route.ts` - For saving talent profiles
+
+4. **Test Route**
+   - `/api/test/route.ts` - For testing database connection
+
+These routes will need to be migrated in the next phase before we can fully remove the MongoDB dependency.
 
 ## Example Migration: Talent Profile Route
 

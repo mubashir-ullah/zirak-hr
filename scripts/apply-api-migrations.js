@@ -92,40 +92,27 @@ function runMigration() {
       console.log(`${index + 1}. ${path.relative(process.cwd(), file)}`);
     });
     
-    // Ask for confirmation
-    const readline = require('readline').createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
+    // Automatically proceed with the migration
+    console.log('\nApplying migrations...');
     
-    readline.question('\nDo you want to proceed with the migration? (y/n): ', answer => {
-      readline.close();
-      
-      if (answer.toLowerCase() === 'y') {
-        console.log('\nApplying migrations...');
-        
-        let successCount = 0;
-        let failCount = 0;
-        
-        // Apply each migration
-        for (const file of migratedFiles) {
-          const success = applyMigration(file);
-          if (success) {
-            successCount++;
-          } else {
-            failCount++;
-          }
-        }
-        
-        console.log('\nMigration summary:');
-        console.log(`  Successfully migrated: ${successCount}`);
-        console.log(`  Failed migrations: ${failCount}`);
-        console.log('\nBackups of original files were created with .bak extension');
-        console.log('You can restore them if needed.');
+    let successCount = 0;
+    let failCount = 0;
+    
+    // Apply each migration
+    for (const file of migratedFiles) {
+      const success = applyMigration(file);
+      if (success) {
+        successCount++;
       } else {
-        console.log('Migration cancelled.');
+        failCount++;
       }
-    });
+    }
+    
+    console.log('\nMigration summary:');
+    console.log(`  Successfully migrated: ${successCount}`);
+    console.log(`  Failed migrations: ${failCount}`);
+    console.log('\nBackups of original files were created with .bak extension');
+    console.log('You can restore them if needed.');
   } catch (error) {
     console.error('Error running migration:', error);
   }

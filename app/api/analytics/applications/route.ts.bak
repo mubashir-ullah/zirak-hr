@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
-import supabase from '@/lib/supabase';
+import { connectToDatabase } from '../../../../lib/mongodb';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const timeRange = searchParams.get('timeRange') || 'month';
+    
+    const { db } = await connectToDatabase();
+    const applicationsCollection = db.collection('applications');
     
     // Calculate time periods and labels based on timeRange
     const currentDate = new Date();
@@ -47,18 +50,8 @@ export async function GET(request: Request) {
     // Get application data for each period
     const applicationData: number[] = [];
     
-    // Query Supabase for application data
-    // For now, we'll use the same random data approach as the original,
-    // but in a real implementation, you would query Supabase for each period
-    
-    // Example of how to query applications from Supabase:
-    // const { data, error } = await supabase
-    //   .from('applications')
-    //   .select('count')
-    //   .gte('created_at', dateFilter.toISOString())
-    //   .order('created_at', { ascending: true });
-    
     // For demonstration, we'll generate random data
+    // In a real implementation, you would query the database for each period
     for (let i = 0; i < labels.length; i++) {
       // This is where you would query for applications in each time period
       // For now, generate random data between 5 and 25

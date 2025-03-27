@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
-import supabase from '@/lib/supabase';
+import { connectToDatabase } from '../../../../lib/mongodb';
+import Candidate from '../../../models/candidate';
 
 export async function POST(request: Request) {
   try {
+    const { db } = await connectToDatabase();
     const body = await request.json();
     
     const { 
@@ -11,105 +13,78 @@ export async function POST(request: Request) {
       filters = {} 
     } = body;
     
-    // Build the Supabase query
-    let supabaseQuery = supabase
-      .from('candidates')
-      .select('*');
+    // Build the MongoDB query
+    const mongoQuery: any = {};
+    
+    // Add text search if query is provided
+    if (query) {
+      mongoQuery.$text = { $search: query };
+    }
     
     // Add filters
     if (filters.experience && Array.isArray(filters.experience) && filters.experience.length === 2) {
-      supabaseQuery = supabaseQuery
-        .gte('experience', filters.experience[0])
-        .lte('experience', filters.experience[1]);
+      mongoQuery.experience = { 
+        $gte: filters.experience[0], 
+        $lte: filters.experience[1] 
+      };
     }
     
     if (filters.location && filters.location !== 'all') {
-      supabaseQuery = supabaseQuery.ilike('location', `%${filters.location}%`);
+      mongoQuery.location = { $regex: new RegExp(filters.location, 'i') };
     }
     
     if (filters.country && filters.country !== 'all') {
-      supabaseQuery = supabaseQuery.ilike('country', `%${filters.country}%`);
+      mongoQuery.country = { $regex: new RegExp(filters.country, 'i') };
     }
     
     if (filters.city && filters.city !== 'all') {
-      supabaseQuery = supabaseQuery.ilike('city', `%${filters.city}%`);
+      mongoQuery.city = { $regex: new RegExp(filters.city, 'i') };
     }
     
     if (filters.skills && filters.skills.length > 0) {
-      // For array containment, we need to use the "contains" operator
-      // This checks if the skills array contains ANY of the filter skills
-      supabaseQuery = supabaseQuery.contains('skills', filters.skills);
+      mongoQuery.skills = { $in: filters.skills };
     }
     
     if (filters.language && filters.language !== 'all') {
-      // For JSON array fields, we need to use a different approach
-      // This is a simplification - in a real app, you'd use a more sophisticated query
-      supabaseQuery = supabaseQuery.ilike('languages', `%${filters.language}%`);
+      mongoQuery['languages.language'] = { $regex: new RegExp(filters.language, 'i') };
     }
     
     if (filters.languageProficiency && filters.languageProficiency !== 'all') {
-      supabaseQuery = supabaseQuery.ilike('languages', `%${filters.languageProficiency}%`);
+      mongoQuery['languages.proficiency'] = { $regex: new RegExp(filters.languageProficiency, 'i') };
     }
     
     if (filters.germanLevel && filters.germanLevel !== 'all') {
-      supabaseQuery = supabaseQuery.eq('german_level', filters.germanLevel);
+      mongoQuery.germanLevel = filters.germanLevel;
     }
     
     if (filters.visaRequired && filters.visaRequired !== 'all') {
-      const visaStatus = filters.visaRequired === 'required' ? 'Required' : 'Not Required';
-      supabaseQuery = supabaseQuery.eq('visa_status', visaStatus);
+      mongoQuery.visaStatus = filters.visaRequired === 'required' ? 'Required' : 'Not Required';
     }
     
     if (filters.availability && filters.availability !== 'all') {
-      supabaseQuery = supabaseQuery.ilike('availability', `%${filters.availability}%`);
-    }
-    
-    // Execute the query
-    const { data: candidates, error, count } = await supabaseQuery;
-    
-    if (error) {
-      throw error;
+      mongoQuery.availability = { $regex: new RegExp(filters.availability, 'i') };
     }
     
     // Check if we have any candidates in the database
-    if (!candidates || candidates.length === 0) {
-      // Seed sample data if no candidates exist
-      await seedSampleCandidates();
-      
-      // Re-run the query
-      const { data: seededCandidates, error: seededError } = await supabaseQuery;
-      
-      if (seededError) {
-        throw seededError;
-      }
-      
-      if (!seededCandidates || seededCandidates.length === 0) {
-        // If still no candidates, return empty array
-        return NextResponse.json([]);
-      }
-      
-      // If AI matching is enabled, calculate match scores
-      let processedCandidates = seededCandidates;
-      if (useAI && query) {
-        processedCandidates = calculateAIMatchScores(seededCandidates, query);
-      }
-      
-      // Sort by match score (highest first)
-      processedCandidates.sort((a, b) => b.match_score - a.match_score);
-      
-      return NextResponse.json(processedCandidates);
+    const candidatesCount = await db.collection('candidates').countDocuments();
+    
+    // If no candidates exist, seed some sample data
+    if (candidatesCount === 0) {
+      await seedSampleCandidates(db);
     }
     
+    // Execute the query
+    let candidates = await db.collection('candidates').find(mongoQuery).toArray();
+    
     // If AI matching is enabled, calculate match scores
-    let processedCandidates = candidates;
     if (useAI && query) {
-      processedCandidates = calculateAIMatchScores(candidates, query);
+      candidates = calculateAIMatchScores(candidates, query);
     }
     
     // Sort by match score (highest first)
-    processedCandidates.sort((a, b) => b.match_score - a.match_score);
+    candidates.sort((a, b) => b.matchScore - a.matchScore);
     
-    return NextResponse.json(processedCandidates);
+    return NextResponse.json(candidates);
     
   } catch (error) {
     console.error('Error searching candidates:', error);
@@ -121,7 +96,7 @@ export async function POST(request: Request) {
 }
 
 // Function to seed sample candidates data
-async function seedSampleCandidates() {
+async function seedSampleCandidates(db: any) {
   const sampleCandidates = [
     {
       name: 'Aisha Khan',
@@ -129,7 +104,7 @@ async function seedSampleCandidates() {
       location: 'Karachi, Pakistan',
       country: 'Pakistan',
       city: 'Karachi',
-      match_score: 95,
+      matchScore: 95,
       skills: ['React', 'TypeScript', 'Next.js', 'Tailwind CSS'],
       experience: 5,
       education: 'BS Computer Science',
@@ -139,8 +114,8 @@ async function seedSampleCandidates() {
         { language: 'Urdu', proficiency: 'Native' },
         { language: 'German', proficiency: 'Basic' }
       ],
-      german_level: 'A1',
-      visa_status: 'Not Required',
+      germanLevel: 'A1',
+      visaStatus: 'Not Required',
       avatar: '/images/default-avatar.png'
     },
     {
@@ -149,7 +124,7 @@ async function seedSampleCandidates() {
       location: 'Lahore, Pakistan',
       country: 'Pakistan',
       city: 'Lahore',
-      match_score: 87,
+      matchScore: 87,
       skills: ['Node.js', 'React', 'MongoDB', 'Express'],
       experience: 3,
       education: 'MS Software Engineering',
@@ -159,8 +134,8 @@ async function seedSampleCandidates() {
         { language: 'Urdu', proficiency: 'Native' },
         { language: 'German', proficiency: 'Intermediate' }
       ],
-      german_level: 'B1',
-      visa_status: 'Required',
+      germanLevel: 'B1',
+      visaStatus: 'Required',
       avatar: '/images/default-avatar.png'
     },
     {
@@ -169,7 +144,7 @@ async function seedSampleCandidates() {
       location: 'Islamabad, Pakistan',
       country: 'Pakistan',
       city: 'Islamabad',
-      match_score: 82,
+      matchScore: 82,
       skills: ['Figma', 'Adobe XD', 'UI Design', 'User Research'],
       experience: 4,
       education: 'BFA Design',
@@ -179,8 +154,8 @@ async function seedSampleCandidates() {
         { language: 'Urdu', proficiency: 'Native' },
         { language: 'German', proficiency: 'Fluent' }
       ],
-      german_level: 'C1',
-      visa_status: 'Not Required',
+      germanLevel: 'C1',
+      visaStatus: 'Not Required',
       avatar: '/images/default-avatar.png'
     },
     {
@@ -189,7 +164,7 @@ async function seedSampleCandidates() {
       location: 'Karachi, Pakistan',
       country: 'Pakistan',
       city: 'Karachi',
-      match_score: 79,
+      matchScore: 79,
       skills: ['Python', 'Django', 'PostgreSQL', 'Docker'],
       experience: 2,
       education: 'BS Software Engineering',
@@ -199,8 +174,8 @@ async function seedSampleCandidates() {
         { language: 'Urdu', proficiency: 'Native' },
         { language: 'German', proficiency: 'Intermediate' }
       ],
-      german_level: 'B1',
-      visa_status: 'Required',
+      germanLevel: 'B1',
+      visaStatus: 'Required',
       avatar: '/images/default-avatar.png'
     },
     {
@@ -209,7 +184,7 @@ async function seedSampleCandidates() {
       location: 'Lahore, Pakistan',
       country: 'Pakistan',
       city: 'Lahore',
-      match_score: 75,
+      matchScore: 75,
       skills: ['AWS', 'Kubernetes', 'CI/CD', 'Terraform'],
       experience: 6,
       education: 'MS Cloud Computing',
@@ -219,8 +194,8 @@ async function seedSampleCandidates() {
         { language: 'Urdu', proficiency: 'Native' },
         { language: 'German', proficiency: 'Intermediate' }
       ],
-      german_level: 'B2',
-      visa_status: 'Not Required',
+      germanLevel: 'B2',
+      visaStatus: 'Not Required',
       avatar: '/images/default-avatar.png'
     },
     {
@@ -229,7 +204,7 @@ async function seedSampleCandidates() {
       location: 'Berlin, Germany',
       country: 'Germany',
       city: 'Berlin',
-      match_score: 88,
+      matchScore: 88,
       skills: ['React Native', 'Flutter', 'Swift', 'Kotlin'],
       experience: 4,
       education: 'MS Mobile Computing',
@@ -239,8 +214,8 @@ async function seedSampleCandidates() {
         { language: 'German', proficiency: 'Fluent' },
         { language: 'Urdu', proficiency: 'Native' }
       ],
-      german_level: 'C2',
-      visa_status: 'Not Required',
+      germanLevel: 'C2',
+      visaStatus: 'Not Required',
       avatar: '/images/default-avatar.png'
     },
     {
@@ -249,7 +224,7 @@ async function seedSampleCandidates() {
       location: 'New York, USA',
       country: 'USA',
       city: 'New York',
-      match_score: 92,
+      matchScore: 92,
       skills: ['Python', 'Machine Learning', 'TensorFlow', 'Data Analysis'],
       experience: 5,
       education: 'PhD Data Science',
@@ -258,8 +233,8 @@ async function seedSampleCandidates() {
         { language: 'English', proficiency: 'Native' },
         { language: 'German', proficiency: 'Basic' }
       ],
-      german_level: 'A2',
-      visa_status: 'Required',
+      germanLevel: 'A2',
+      visaStatus: 'Required',
       avatar: '/images/default-avatar.png'
     },
     {
@@ -268,7 +243,7 @@ async function seedSampleCandidates() {
       location: 'Dubai, UAE',
       country: 'UAE',
       city: 'Dubai',
-      match_score: 85,
+      matchScore: 85,
       skills: ['Product Strategy', 'Agile', 'User Research', 'Roadmapping'],
       experience: 7,
       education: 'MBA',
@@ -278,22 +253,13 @@ async function seedSampleCandidates() {
         { language: 'Arabic', proficiency: 'Native' },
         { language: 'Urdu', proficiency: 'Fluent' }
       ],
-      german_level: 'A1',
-      visa_status: 'Required',
+      germanLevel: 'A1',
+      visaStatus: 'Required',
       avatar: '/images/default-avatar.png'
     }
   ];
   
-  // Insert sample candidates into the database
-  for (const candidate of sampleCandidates) {
-    const { error } = await supabase
-      .from('candidates')
-      .insert(candidate);
-    
-    if (error) {
-      console.error('Error seeding candidate:', error);
-    }
-  }
+  await db.collection('candidates').insertMany(sampleCandidates);
 }
 
 // Function to calculate AI match scores
@@ -304,7 +270,7 @@ function calculateAIMatchScores(candidates: any[], query: string) {
   const keywords = query.toLowerCase().split(' ');
   
   return candidates.map(candidate => {
-    let score = candidate.match_score || 50; // Start with base score
+    let score = candidate.matchScore || 50; // Start with base score
     
     // Check for matches in title
     if (candidate.title) {
@@ -331,7 +297,7 @@ function calculateAIMatchScores(candidates: any[], query: string) {
     
     return {
       ...candidate,
-      match_score: score
+      matchScore: score
     };
   });
 }
