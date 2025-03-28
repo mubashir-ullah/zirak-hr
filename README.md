@@ -157,21 +157,18 @@ Create a `.env` file in the backend and frontend directories. Add the necessary 
 
 #### Run the Application:
 ```bash
-# Start the backend server
-cd backend
-npm start
-
-# Start the frontend development server
-cd ../frontend
+# Install Node Modules Dependencies
+npm install
 npm run dev
 
-# Start the AI module
-cd ../ai-module
-python main.py
 ```
 
 #### Access the Application:
 Open your browser and navigate to [http://localhost:3000](http://localhost:3000).
+
+## Technical Whitepaper
+
+In the website's about us page, you will find the technical whitepaper and video about the team behind Zirak HR.
 
 ## Development Methodology
 Zirak HR follows Agile Development with Scrum-based sprints:
