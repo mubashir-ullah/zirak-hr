@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:init": "node database/init.js"
+    "packageManager": "pnpm@8.15.5"
+
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
