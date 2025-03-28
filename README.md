@@ -38,6 +38,8 @@ Zirak HR is an AI-powered HR innovation platform designed to streamline the hiri
 - **Deep Seek API**: For resume parsing, skill assessments, and job matching.
 - **OpenAI GPT-4**: Fine-tuned for resume parsing and profile creation.
 - **TensorFlow/PyTorch**: For custom AI models (if needed).
+- **JobBERT Model**: JobBERT (jjzha/JobBERT) is a specialized transformer-based model adapted from the BERT architecture (bert-base-cased), specifically tailored for skill extraction from English job postings. It has undergone extensive domain-specific pre-training on approximately 3.2 million sentences from job advertisements, enhancing its understanding of employment-related language and terminology.
+- **Apizhai/Albert-IT-JobRecommendation**: A lightweight transformer model built on ALBERT, optimized for job recommendation tasks. It was pre-trained using job-resume matching datasets in the IT sector, making it highly suitable for predicting job titles from resume text.
 
 ### Cloud & Deployment:
 - **AWS/GCP**: For scalable, secure, and energy-efficient cloud hosting.
@@ -59,7 +61,7 @@ Zirak HR has successfully migrated from MongoDB to Supabase to leverage Supabase
 - **Row-Level Security**: Enhanced data protection with PostgreSQL's RLS policies
 - **Reduced Complexity**: Single platform for auth, database, and storage reduces integration complexity
 
-For detailed migration information, see the [MIGRATION.md](./MIGRATION.md) file.
+
 
 ## System Architecture
 Zirak HR follows a three-tier architecture:
@@ -220,11 +222,6 @@ Zirak HR follows Agile Development with Scrum-based sprints:
 ### Long-Term Vision:
 Establish Zirak HR as the leading AI-powered hiring platform for the IT industry, connecting professionals worldwide with sustainable and efficient recruitment practices.
 
-## Contributing
-We welcome contributions from the community! If you'd like to contribute to Zirak HR, please follow these steps:
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Submit a pull request with a detailed description of your changes.
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
