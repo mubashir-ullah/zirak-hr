@@ -1,0 +1,4002 @@
+[
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "John Doe\nEmail: john.doe@gmail.com\nPhone: +92-300-1234567\nExperience: 3 years at Google\nSkills: React, Node.js\nEducation: BSc Computer Science\nLocation: Islamabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 34,
+        "label": "EMAIL"
+      },
+      {
+        "start": 42,
+        "end": 57,
+        "label": "PHONE"
+      },
+      {
+        "start": 70,
+        "end": 87,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 96,
+        "end": 110,
+        "label": "SKILLS"
+      },
+      {
+        "start": 122,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ayesha Khan\nEmail: ayesha.khan@outlook.com\nPhone: 0333-7654321\nExperience: 2 years at Systems Ltd\nSkills: Java, Spring Boot\nEducation: BS Software Engineering\nLocation: Lahore",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 42,
+        "label": "EMAIL"
+      },
+      {
+        "start": 50,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 123,
+        "label": "SKILLS"
+      },
+      {
+        "start": 135,
+        "end": 158,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 169,
+        "end": 175,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Ali Raza\nEmail: ali.raza@zong.com\nPhone: +923211234567\nExperience: 5 years at Zong Pvt Ltd\nSkills: Networking, Cisco, CCNA\nEducation: BS IT\nLocation: Karachi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "NAME"
+      },
+      {
+        "start": 16,
+        "end": 33,
+        "label": "EMAIL"
+      },
+      {
+        "start": 41,
+        "end": 54,
+        "label": "PHONE"
+      },
+      {
+        "start": 67,
+        "end": 90,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 99,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 139,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 150,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Fatima Noor\nEmail: fatima.noor@yahoo.com\nPhone: 0345-6789012\nExperience: 4 years at Telenor\nSkills: Python, Django\nEducation: MSc Data Science\nLocation: Rawalpindi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 40,
+        "label": "EMAIL"
+      },
+      {
+        "start": 48,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 91,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 100,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 142,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 153,
+        "end": 163,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Usman Tariq\nEmail: usman.t@gmail.com\nPhone: +92-321-4567890\nExperience: 1 year at Startup.pk\nSkills: Flutter, Dart\nEducation: BS Electrical Engineering\nLocation: Peshawar",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 36,
+        "label": "EMAIL"
+      },
+      {
+        "start": 44,
+        "end": 59,
+        "label": "PHONE"
+      },
+      {
+        "start": 72,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 114,
+        "label": "SKILLS"
+      },
+      {
+        "start": 126,
+        "end": 151,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 162,
+        "end": 170,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hira Shah\nEmail: hira.shah@hotmail.com\nPhone: 0300-1122334\nExperience: 6 years at IBM\nSkills: PHP, Laravel\nEducation: BS Information Systems\nLocation: Multan",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "NAME"
+      },
+      {
+        "start": 17,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 85,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 94,
+        "end": 106,
+        "label": "SKILLS"
+      },
+      {
+        "start": 118,
+        "end": 140,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 151,
+        "end": 157,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Bilal Ahmed\nEmail: bilal.ahmed@live.com\nPhone: +92-345-9988776\nExperience: 2.5 years at PTCL\nSkills: HTML, CSS, JavaScript\nEducation: MS Computer Networks\nLocation: Quetta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 39,
+        "label": "EMAIL"
+      },
+      {
+        "start": 47,
+        "end": 62,
+        "label": "PHONE"
+      },
+      {
+        "start": 75,
+        "end": 92,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 101,
+        "end": 122,
+        "label": "SKILLS"
+      },
+      {
+        "start": 134,
+        "end": 154,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 165,
+        "end": 171,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Zara Sheikh\nEmail: zara.sheikh@uni.edu\nPhone: 0312-4455667\nExperience: 3.5 years at Daraz\nSkills: DevOps, Docker\nEducation: BS Business Analytics\nLocation: Gilgit",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 38,
+        "label": "EMAIL"
+      },
+      {
+        "start": 46,
+        "end": 58,
+        "label": "PHONE"
+      },
+      {
+        "start": 71,
+        "end": 89,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "label": "SKILLS"
+      },
+      {
+        "start": 124,
+        "end": 145,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 156,
+        "end": 162,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Hamza Khalid\nEmail: hamza.khalid@workmail.com\nPhone: 0321-8899776\nExperience: 1.5 years at Fiverr\nSkills: AI, ML, NLP\nEducation: BS Mathematics\nLocation: Sialkot",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "NAME"
+      },
+      {
+        "start": 20,
+        "end": 45,
+        "label": "EMAIL"
+      },
+      {
+        "start": 53,
+        "end": 65,
+        "label": "PHONE"
+      },
+      {
+        "start": 78,
+        "end": 97,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 106,
+        "end": 117,
+        "label": "SKILLS"
+      },
+      {
+        "start": 129,
+        "end": 143,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 154,
+        "end": 161,
+        "label": "LOCATION"
+      }
+    ]
+  },
+  {
+    "text": "Nida Yousaf\nEmail: nida.yousaf@edu.pk\nPhone: +92-344-5566778\nExperience: 7 years at Microsoft\nSkills: Excel, SQL, Data Analysis\nEducation: BS Statistics\nLocation: Hyderabad",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "NAME"
+      },
+      {
+        "start": 19,
+        "end": 37,
+        "label": "EMAIL"
+      },
+      {
+        "start": 45,
+        "end": 60,
+        "label": "PHONE"
+      },
+      {
+        "start": 73,
+        "end": 93,
+        "label": "EXPERIENCE"
+      },
+      {
+        "start": 102,
+        "end": 127,
+        "label": "SKILLS"
+      },
+      {
+        "start": 139,
+        "end": 152,
+        "label": "EDUCATION"
+      },
+      {
+        "start": 163,
+        "end": 172,
+        "label": "LOCATION"
+      }
+    ]
+  }
+]
