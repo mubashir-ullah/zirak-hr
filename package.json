@@ -85,7 +85,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "pnpm": "^8.15.5"
+    "pnpm": "^8.15.5",
     "@babel/core": "^7.26.10",
     "@babel/preset-env": "^7.26.9",
     "@babel/preset-typescript": "^7.26.0",
