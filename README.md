@@ -87,69 +87,15 @@ zirak-hr/
 │   ├── supabase/         # Supabase related utilities
 │   └── utils/            # General utilities
 ├── supabase/             # Supabase configurations and migrations
-└── ai-service/           # Python AI service
-```
+└── ai-service/         
 
-## Best Practices
 
-1. **File Organization**
-   - Components are organized by feature/module
-   - Shared components are in the components directory
-   - API routes follow the same structure as the frontend pages
-   - Utilities are properly separated in the lib directory
-
-2. **Code Style**
-   - TypeScript for type safety
-   - ESLint and Prettier for code formatting
-   - Absolute imports using @/ prefix
-   - Proper error handling and logging
-
-3. **Authentication**
-   - Supabase Auth for authentication
-   - Role-based access control
-   - Protected API routes and pages
-   - Secure session management
-
-4. **Performance**
-   - Server components where possible
-   - Proper image optimization
-   - API route optimization
-   - Efficient database queries
-
-5. **Testing**
-   - Jest for unit tests
-   - React Testing Library for component tests
-   - API route testing
-   - E2E testing with Cypress
-
-## Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher)
-- Python (v3.8 or higher)
-- Supabase (v1.0 or higher)
-- Docker (for containerization)
 
 ### Installation
 #### Clone the Repository:
 ```bash
 git clone https://github.com/your-repo/zirak-hr.git
 cd zirak-hr
-```
-
-#### Install Dependencies:
-```bash
-# Frontend
-cd frontend
-npm install
-
-# Backend
-cd ../backend
-npm install
-
-# AI Module
-cd ../ai-module
-pip install -r requirements.txt
 ```
 
 #### Set Up Environment Variables:
