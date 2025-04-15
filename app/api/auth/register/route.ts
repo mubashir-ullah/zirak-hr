@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import supabase from '@/lib/supabase';
-import { generateOTP, hashOTP, storeOTP } from '@/lib/otp';
-import { sendOTPVerificationEmail } from '@/lib/email';
-import { createUser } from '@/lib/database';
+import { createUser, findUserByEmail } from '@/lib/supabaseDb';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password, organization, position } = body;
+    const { name, email, password, role } = body;
 
     // Validate required fields
     if (!name || !email || !password) {
@@ -17,24 +15,34 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log('Registration attempt for email:', email);
+
+    // Check if user already exists
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+      console.log('User already exists in database:', email);
+      return NextResponse.json(
+        { error: 'User with this email already exists' },
+        { status: 400 }
+      );
+    }
+
     // Register user with Supabase Auth
-    console.log('Registering user with Supabase...');
+    console.log('Registering user with Supabase Auth...');
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           name,
-          role: 'talent', // Default role
-          needs_role_selection: true,
-          organization,
-          position
+          role: role || 'talent', // Default role is talent
+          needs_role_selection: !role // Only needs role selection if no role provided
         }
       }
     });
 
     if (error) {
-      console.error('Registration error:', error);
+      console.error('Supabase registration error:', error);
       return NextResponse.json(
         { error: error.message },
         { status: 400 }
@@ -42,85 +50,49 @@ export async function POST(request: Request) {
     }
 
     if (!data.user) {
+      console.error('No user returned from Supabase');
       return NextResponse.json(
         { error: 'Failed to create user' },
         { status: 500 }
       );
     }
 
+    console.log('User created in Supabase Auth:', data.user.id);
+
     // Create user in our database
+    console.log('Creating user in database...');
     const userData = {
       id: data.user.id,
       email: email.toLowerCase(),
       name,
-      role: 'talent',
-      needs_role_selection: true,
+      role: role || 'talent',
+      needs_role_selection: !role, // Only needs role selection if no role provided
       needs_profile_completion: true,
-      email_verified: false,
-      organization,
-      position
+      email_verified: true, // We'll assume the email is verified for now
     };
 
-    const user = await createUser(userData);
+    const { user: newUser, error: dbError } = await createUser(userData);
 
-    if (!user) {
-      console.error('Failed to create user in database');
-      // Continue with registration but log the error
-    }
-
-    // Generate and send OTP for email verification
-    console.log('Generating OTP for email verification...');
-    const otp = generateOTP();
-    console.log('OTP generated:', otp);
-    
-    const hashedOTP = hashOTP(otp, email);
-    console.log('OTP hashed successfully');
-    
-    // Set expiration time (10 minutes from now)
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
-    console.log('OTP expiration set to:', expiresAt.toISOString());
-    
-    // Store the OTP in the database
-    console.log('Attempting to store OTP in database...');
-    const stored = await storeOTP(email, hashedOTP, expiresAt);
-    console.log('OTP storage result:', stored ? 'Success' : 'Failed');
-    
-    if (!stored) {
-      console.error('Failed to store OTP');
+    if (dbError || !newUser) {
+      console.error('Failed to create user in database:', dbError);
       // Continue with registration but log the error
     } else {
-      // Send the OTP via email
-      console.log('Sending OTP verification email to:', email);
-      const emailResult = await sendOTPVerificationEmail(email, otp);
-      console.log('OTP email sent result:', emailResult);
-      
-      if (emailResult.previewUrl) {
-        console.log('');
-        console.log('============================================');
-        console.log('📧 TEST EMAIL PREVIEW URL:');
-        console.log(emailResult.previewUrl);
-        console.log('============================================');
-        console.log('');
-      }
+      console.log('User created in database successfully:', newUser.id);
     }
 
-    console.log('User registered successfully');
+    // Return successful response
     return NextResponse.json({
       message: 'Registration successful',
       user: {
         id: data.user.id,
         name,
         email,
-        role: 'talent',
-        organization,
-        position,
-        needsRoleSelection: true,
-        needsEmailVerification: true
+        role: role || 'talent',
+        needsRoleSelection: !role
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Unexpected registration error:', error);
     return NextResponse.json(
       { error: 'An error occurred during registration' },
       { status: 500 }

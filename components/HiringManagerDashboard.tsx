@@ -21,6 +21,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { signOut } from 'next-auth/react'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 // Dashboard sections
 import HiringManagerOverview from '@/components/dashboard/hiring-manager/Overview'
@@ -71,26 +73,107 @@ function LogoWithTheme() {
 }
 
 export default function HiringManagerDashboard() {
-  const { data: session, status } = useSession()
+  const { user, status, signOut: authSignOut } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const [loading, setLoading] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const supabase = createClientComponentClient()
   
   // Extract the current section from the pathname
   const currentSection = pathname?.split('/').pop() || 'overview'
 
   useEffect(() => {
-    // Redirect if not authenticated or not a hiring manager
-    if (status === 'unauthenticated') {
+    // First authentication check - for initial load
+    const checkAuth = async () => {
+      try {
+        console.log("Checking auth state:", status, user)
+        
+        // If still loading, wait
+        if (status === 'loading') {
+          return
+        }
+        
+        // If not authenticated, redirect to login
+        if (status === 'unauthenticated' || !user) {
+          console.log("User not authenticated, redirecting to login")
+          router.push('/login')
+          return
+        }
+        
+        // If authenticated but not a hiring manager, redirect to appropriate dashboard
+        // Normalize the role to handle both formats: hiring_manager and hiring-manager
+        const normalizedRole = user.role?.replace('-', '_').toLowerCase()
+        console.log("User role (normalized):", normalizedRole)
+        
+        if (normalizedRole !== 'hiring_manager') {
+          console.log("User is not a hiring manager:", user.role)
+          
+          if (user.needsRoleSelection) {
+            console.log("User needs to select a role, redirecting to role selection")
+            router.push('/dashboard/role-selection')
+            return
+          }
+          
+          if (normalizedRole === 'talent') {
+            console.log("User is talent, redirecting to talent dashboard")
+            router.push('/dashboard/talent')
+            return
+          }
+          
+          if (normalizedRole === 'admin') {
+            console.log("User is admin, redirecting to admin dashboard")
+            router.push('/dashboard/admin')
+            return
+          }
+          
+          // Fallback for any other role
+          console.log("Unknown role, redirecting to role selection")
+          router.push('/dashboard/role-selection')
+          return
+        }
+        
+        // User is authenticated and is a hiring manager
+        console.log("User is authenticated as hiring manager")
+        setLoading(false)
+      } catch (error) {
+        console.error("Error checking authentication:", error)
+        setLoading(false)
+      }
+    }
+    
+    checkAuth()
+    
+    // Also set up a Supabase auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event)
+      
+      if (event === 'SIGNED_OUT') {
+        router.push('/login')
+      } else if (event === 'SIGNED_IN') {
+        checkAuth()
+      }
+    })
+    
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [status, user, router, supabase.auth])
+
+  const handleLogout = async () => {
+    try {
+      setLoading(true)
+      await authSignOut()
       router.push('/login')
-    } else if (status === 'authenticated' && (session?.user as any)?.role !== 'hiring_manager') {
-      // If user is not a hiring manager, redirect to appropriate dashboard
-      router.push('/dashboard/talent')
-    } else if (status === 'authenticated') {
+    } catch (error) {
+      console.error("Error signing out:", error)
+      // Try fallback to Supabase direct signout
+      await supabase.auth.signOut()
+      router.push('/login')
+    } finally {
       setLoading(false)
     }
-  }, [status, session, router])
+  }
 
   if (loading) {
     return (
@@ -193,20 +276,16 @@ export default function HiringManagerDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mr-3">
-                  {session?.user?.image ? (
-                    <img 
-                      src={session.user.image} 
-                      alt={session.user.name || 'User'} 
-                      className="w-10 h-10 rounded-full"
-                    />
-                  ) : (
+                  {user?.email ? (
                     <span className="text-xl font-semibold">
-                      {session?.user?.name?.charAt(0) || 'H'}
+                      {user.email.charAt(0).toUpperCase()}
                     </span>
+                  ) : (
+                    <span className="text-xl font-semibold">H</span>
                   )}
                 </div>
                 <div>
-                  <p className="font-medium">{session?.user?.name || 'User'}</p>
+                  <p className="font-medium">{user?.email?.split('@')[0] || 'User'}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Hiring Manager</p>
                 </div>
               </div>
@@ -241,7 +320,7 @@ export default function HiringManagerDashboard() {
             <Button 
               variant="outline" 
               className="w-full justify-start text-sm py-2 text-rose-600 hover:text-rose-700 dark:text-rose-500 dark:hover:text-rose-400 border-rose-200 hover:border-rose-300 dark:border-rose-800 dark:hover:border-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/20"
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={handleLogout}
             >
               <LogOut size={16} className="mr-2" />
               Logout

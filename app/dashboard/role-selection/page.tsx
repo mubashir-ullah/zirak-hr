@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useAuth } from '@/app/contexts/AuthContext';
 import Image from 'next/image';
 
 export default function RoleSelectionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshSession } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
@@ -63,14 +65,38 @@ export default function RoleSelectionPage() {
 
     try {
       console.log('Selecting role:', selectedRole);
+
+      // First, update the Supabase user metadata directly
+      if (userId) {
+        try {
+          console.log('Updating Supabase user metadata with role:', selectedRole);
+          const { error: updateMetadataError } = await supabase.auth.updateUser({
+            data: { 
+              role: selectedRole,
+              needs_role_selection: false 
+            }
+          });
+
+          if (updateMetadataError) {
+            console.error('Error updating user metadata in Supabase:', updateMetadataError);
+            // Continue anyway, as we'll update the database via API
+          } else {
+            console.log('User metadata updated in Supabase successfully');
+          }
+        } catch (updateError) {
+          console.error('Failed to update user metadata:', updateError);
+          // Continue anyway, as we'll update the database via API
+        }
+      }
       
-      // First, update the role in the database
+      // Update the role in our database via API
+      console.log('Updating role via API:', selectedRole);
       const response = await fetch('/api/auth/set-role', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           role: selectedRole, 
-          userId: userId || null,
+          userId: userId || undefined,
           email: email
         })
       });
@@ -80,11 +106,32 @@ export default function RoleSelectionPage() {
         throw new Error(errorData.message || 'Failed to set role');
       }
 
-      console.log('Role updated in database successfully');
+      const responseData = await response.json();
+      console.log('Role updated successfully, API response:', responseData);
       
-      // Redirect to the appropriate dashboard
-      const dashboardUrl = selectedRole === 'talent' ? '/dashboard/talent' : '/dashboard/hiring-manager';
-      router.push(dashboardUrl);
+      // Refresh the session to ensure it has the latest user data
+      try {
+        await refreshSession();
+        console.log('Session refreshed after role selection');
+      } catch (refreshError) {
+        console.error('Failed to refresh session:', refreshError);
+        // Continue anyway, the redirect should still work
+      }
+      
+      // Force a full page reload to ensure the auth state is refreshed
+      if (responseData.redirectTo) {
+        console.log('Redirecting to dashboard:', responseData.redirectTo);
+        window.location.href = responseData.redirectTo;
+      } else {
+        // Fallback redirect based on role
+        const fallbackUrl = 
+          selectedRole === 'talent' ? '/dashboard/talent' :
+          selectedRole === 'hiring_manager' ? '/dashboard/hiring-manager' : 
+          '/dashboard';
+          
+        console.log('No redirect URL in API response, using fallback:', fallbackUrl);
+        window.location.href = fallbackUrl;
+      }
     } catch (error) {
       console.error('Error selecting role:', error);
       setError(error instanceof Error ? error.message : 'Failed to set role');
@@ -117,7 +164,7 @@ export default function RoleSelectionPage() {
           </div>
         )}
 
-        <div className="grid gap-4">
+        <div className="space-y-4">
           <button
             onClick={() => handleRoleSelection('talent')}
             disabled={isSubmitting}
@@ -178,7 +225,7 @@ export default function RoleSelectionPage() {
           disabled={isSubmitting}
           className="mt-6 w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded"
         >
-          Submit
+          {isSubmitting ? 'Processing...' : 'Submit'}
         </button>
 
         {isSubmitting && (

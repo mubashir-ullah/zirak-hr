@@ -83,9 +83,27 @@ export interface SavedJobData {
 // User operations
 export const createUser = async (userData: Omit<UserData, 'id' | 'created_at' | 'updated_at'> & { id: string }): Promise<{ user: UserData | null, error: any }> => {
   try {
+    if (!userData.id) {
+      console.error('Error: Missing user ID in createUser');
+      return { user: null, error: 'Missing user ID' };
+    }
+    
+    if (!userData.email) {
+      console.error('Error: Missing email in createUser');
+      return { user: null, error: 'Missing email' };
+    }
+    
+    // Normalize the email to lowercase
+    userData.email = userData.email.toLowerCase();
+    
+    // Default values
     const newUser = {
       ...userData,
       id: userData.id, // Use provided ID
+      role: userData.role || 'talent',
+      needs_role_selection: userData.needs_role_selection === true,
+      needs_profile_completion: userData.needs_profile_completion !== false,
+      email_verified: userData.email_verified === true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };

@@ -66,7 +66,7 @@ export const signUpWithEmail = async (
 
     // Then, store additional user data in our users table
     const hashedPassword = await bcrypt.hash(password, 10);
-    const userData = await createUser({
+    const { user: newUser, error: dbError } = await createUser({
       id: authData.user.id,
       name,
       email: email.toLowerCase(),
@@ -75,7 +75,12 @@ export const signUpWithEmail = async (
       needs_role_selection: needsRoleSelection,
     });
 
-    return { user: userData, error: null };
+    if (dbError || !newUser) {
+      console.error('Error creating user in database:', dbError);
+      return { user: null, error: 'Failed to create user record' };
+    }
+
+    return { user: newUser, error: null };
   } catch (error) {
     console.error('Error signing up with email:', error);
     return { user: null, error: 'An unexpected error occurred' };
@@ -85,28 +90,90 @@ export const signUpWithEmail = async (
 export const signInWithEmail = async (
   email: string,
   password: string
-): Promise<{ user: UserData | null; error: string | null }> => {
+): Promise<{ user: UserData | null; error: string | null; session: any }> => {
   try {
     // First, sign in with Supabase Auth
+    console.log('Attempting to sign in with email:', email);
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (authError) {
-      return { user: null, error: authError.message };
+      console.error('Auth error during sign in:', authError.message);
+      return { user: null, error: authError.message, session: null };
     }
+
+    if (!authData?.user) {
+      console.error('No user data returned from auth');
+      return { user: null, error: 'Authentication failed', session: null };
+    }
+
+    console.log('Auth successful. User ID:', authData.user.id);
 
     // Then, get the user data from our users table
     const userData = await findUserByEmail(email.toLowerCase());
+    
+    // If user exists in Supabase but not in our database, create them
     if (!userData) {
-      return { user: null, error: 'User not found' };
+      console.log('User not found in database, creating user record');
+      try {
+        const { user: newUser, error: createError } = await createUser({
+          id: authData.user.id,
+          name: authData.user.user_metadata?.name || email.split('@')[0],
+          email: email.toLowerCase(),
+          role: authData.user.user_metadata?.role || 'talent',
+          needs_role_selection: !authData.user.user_metadata?.role || true,
+          email_verified: true // Auto-verify for simplicity
+        });
+        
+        if (createError || !newUser) {
+          console.error('Error creating user in database:', createError);
+          return { user: null, error: 'Failed to create user profile', session: null };
+        }
+        
+        // Also update Supabase user metadata to match our database
+        try {
+          await supabase.auth.updateUser({
+            data: {
+              role: newUser.role,
+              needs_role_selection: newUser.needs_role_selection
+            }
+          });
+        } catch (updateError) {
+          console.error('Error updating user metadata:', updateError);
+          // Continue anyway since we've created the user in our database
+        }
+        
+        console.log('User created in database:', newUser);
+        return { user: newUser, error: null, session: authData.session };
+      } catch (createError) {
+        console.error('Exception creating user:', createError);
+        return { user: null, error: 'An error occurred while creating user profile', session: null };
+      }
     }
 
-    return { user: userData, error: null };
+    // Check if we need to sync Supabase metadata with our database
+    if (userData.role && userData.role !== authData.user.user_metadata?.role) {
+      console.log('Syncing user metadata with our database...');
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            role: userData.role,
+            needs_role_selection: userData.needs_role_selection
+          }
+        });
+      } catch (updateError) {
+        console.error('Error updating user metadata:', updateError);
+        // Continue anyway since we have the correct data in our database
+      }
+    }
+
+    console.log('User found in database:', userData);
+    return { user: userData, error: null, session: authData.session };
   } catch (error) {
-    console.error('Error signing in with email:', error);
-    return { user: null, error: 'An unexpected error occurred' };
+    console.error('Unexpected error signing in with email:', error);
+    return { user: null, error: 'An unexpected error occurred', session: null };
   }
 };
 
@@ -154,16 +221,22 @@ export const handleAuthCallback = async (): Promise<{ user: UserData | null; err
     
     if (userData) {
       // Update existing user with latest info
-      userData = await updateUser(userData.id!, {
+      const updatedUser = await updateUser(userData.id!, {
         social_provider: supabaseUser.app_metadata.provider,
         updated_at: new Date().toISOString(),
       });
+      
+      if (!updatedUser) {
+        return { user: null, error: 'Failed to update user' };
+      }
+      
+      return { user: updatedUser, error: null };
     } else {
       // Create new user in our database
       const randomPassword = Math.random().toString(36).slice(2, 10);
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
       
-      userData = await createUser({
+      const { user: newUser, error: createError } = await createUser({
         id: supabaseUser.id,
         name: supabaseUser.user_metadata.full_name || email.split('@')[0],
         email,
@@ -172,9 +245,13 @@ export const handleAuthCallback = async (): Promise<{ user: UserData | null; err
         social_provider: supabaseUser.app_metadata.provider,
         needs_role_selection: true,
       });
+      
+      if (createError || !newUser) {
+        return { user: null, error: 'Failed to create user record' };
+      }
+      
+      return { user: newUser, error: null };
     }
-
-    return { user: userData, error: null };
   } catch (error) {
     console.error('Error handling auth callback:', error);
     return { user: null, error: 'An unexpected error occurred' };
@@ -215,6 +292,41 @@ export const getCurrentUser = async (): Promise<{ user: UserData | null; error: 
 
     const userData = await findUserByEmail(email);
     
+    if (!userData) {
+      // Create user in our database if they exist in Supabase but not in our DB
+      console.log('User exists in Supabase but not in database, creating user record');
+      const { user: newUser, error: createError } = await createUser({
+        id: supabaseUser.id,
+        name: supabaseUser.user_metadata?.name || email.split('@')[0],
+        email: email,
+        role: supabaseUser.user_metadata?.role || 'talent',
+        needs_role_selection: !supabaseUser.user_metadata?.role || true,
+        email_verified: true
+      });
+      
+      if (createError || !newUser) {
+        console.error('Error creating user in database:', createError);
+        return { user: null, error: 'Failed to create user profile' };
+      }
+      
+      return { user: newUser, error: null };
+    }
+    
+    // Sync Supabase metadata with our database if needed
+    if (userData.role && userData.role !== supabaseUser.user_metadata?.role) {
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            role: userData.role,
+            needs_role_selection: userData.needs_role_selection
+          }
+        });
+      } catch (updateError) {
+        console.error('Error updating user metadata:', updateError);
+        // Continue anyway
+      }
+    }
+    
     return { user: userData, error: null };
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -235,6 +347,19 @@ export const setUserRole = async (
     
     if (!updatedUser) {
       return { user: null, error: 'Failed to update user role' };
+    }
+    
+    // Also update Supabase user metadata
+    try {
+      await supabase.auth.updateUser({
+        data: { 
+          role: role,
+          needs_role_selection: false 
+        }
+      });
+    } catch (updateError) {
+      console.error('Error updating user metadata:', updateError);
+      // Continue anyway since we've updated our database
     }
     
     return { user: updatedUser, error: null };

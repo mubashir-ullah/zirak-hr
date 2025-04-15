@@ -27,11 +27,12 @@ import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Footer } from './Footer'
 import { useAuth } from '../contexts/AuthContext'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function TalentDashboard() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
-  const { signOut } = useAuth()
+  const { user, status, signOut } = useAuth()
   const [isOnline, setIsOnline] = useState(true)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'profile' | 'resume' | 'jobs' | 'applications' | 'skills' | 'settings'>('profile')
@@ -40,6 +41,79 @@ export default function TalentDashboard() {
     title: '',
     profilePicture: '/images/default-avatar.png'
   })
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient()
+
+  // Check auth status and redirect if needed
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        console.log("Checking auth state:", status, user)
+        
+        // If still loading, wait
+        if (status === 'loading') {
+          return
+        }
+        
+        // If not authenticated, redirect to login
+        if (status === 'unauthenticated' || !user) {
+          console.log("User not authenticated, redirecting to login")
+          router.push('/login')
+          return
+        }
+        
+        // If authenticated but not a talent, redirect to appropriate dashboard
+        if (user.role !== 'talent') {
+          console.log("User is not a talent:", user.role)
+          
+          if (user.needsRoleSelection) {
+            console.log("User needs to select a role, redirecting to role selection")
+            router.push('/dashboard/role-selection')
+            return
+          }
+          
+          if (user.role === 'hiring_manager') {
+            console.log("User is hiring manager, redirecting to hiring manager dashboard")
+            router.push('/dashboard/hiring-manager')
+            return
+          }
+          
+          if (user.role === 'admin') {
+            console.log("User is admin, redirecting to admin dashboard")
+            router.push('/dashboard/admin')
+            return
+          }
+          
+          // Fallback for any other role
+          console.log("Unknown role, redirecting to role selection")
+          router.push('/dashboard/role-selection')
+          return
+        }
+        
+        setLoading(false)
+      } catch (error) {
+        console.error("Error checking authentication:", error)
+        setLoading(false)
+      }
+    }
+    
+    checkAuth()
+    
+    // Also set up a Supabase auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event)
+      
+      if (event === 'SIGNED_OUT') {
+        router.push('/login')
+      } else if (event === 'SIGNED_IN') {
+        checkAuth()
+      }
+    })
+    
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [status, user, router, supabase.auth])
 
   // Check online status
   useEffect(() => {
@@ -113,11 +187,25 @@ export default function TalentDashboard() {
   // Handle logout
   const handleLogout = async () => {
     try {
-      await signOut();
-      router.push('/login');
+      setLoading(true)
+      await signOut()
+      router.push('/login')
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Logout failed:', error)
+      // Try fallback to direct Supabase signout
+      await supabase.auth.signOut()
+      router.push('/login')
+    } finally {
+      setLoading(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#d6ff00]"></div>
+      </div>
+    )
   }
 
   return (

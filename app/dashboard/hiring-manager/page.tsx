@@ -1,5 +1,5 @@
-import HRDashboard from '@/app/components/HRDashboard'
+import HiringManagerDashboard from '@/components/HiringManagerDashboard'
 
 export default function HiringManagerDashboardPage() {
-  return <HRDashboard />
+  return <HiringManagerDashboard />
 }

@@ -7,7 +7,11 @@ import { toast } from 'sonner'
 import supabase from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
-export function SocialLoginButtons() {
+interface SocialLoginButtonsProps {
+  onProviderClick?: (provider: 'google' | 'github' | 'linkedin' | 'apple') => Promise<void>;
+}
+
+export function SocialLoginButtons({ onProviderClick }: SocialLoginButtonsProps) {
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -16,6 +20,12 @@ export function SocialLoginButtons() {
     try {
       setIsLoading(provider)
       setError(null)
+
+      // If onProviderClick prop is provided, use that instead
+      if (onProviderClick) {
+        await onProviderClick(provider)
+        return
+      }
 
       // Use Supabase Auth for social login
       const { data, error } = await supabase.auth.signInWithOAuth({

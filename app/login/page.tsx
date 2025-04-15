@@ -13,11 +13,16 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '@/lib/utils'
 
+// Define the props for SocialLoginButtons component
+interface SocialLoginButtonsProps {
+  onProviderClick: (provider: 'google' | 'github' | 'linkedin' | 'apple') => Promise<void>;
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { theme } = useTheme()
-  const { login } = useAuth()
+  const { login, refreshSession } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
@@ -74,60 +79,93 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // Sign in with Supabase Auth
+      console.log('Attempting login with email:', formData.email)
+      
+      // Sign in with Supabase directly
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       })
 
       if (authError) {
-        throw new Error(authError.message)
+        console.error('Login error:', authError)
+        setError('Invalid email or password. Please try again.')
+        setLoading(false)
+        return
       }
 
-      if (!authData.user) {
-        throw new Error('Failed to sign in')
+      if (!authData?.user || !authData?.session) {
+        console.error('No user/session data returned')
+        setError('Login failed. Please try again.')
+        setLoading(false)
+        return
       }
 
-      // Get user role and redirect information
-      const response = await fetch('/api/auth/get-user-role', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-        }),
-      })
+      console.log('Login successful with Supabase Auth:', authData.user.id)
+      setSuccessMessage('Login successful! Redirecting...')
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          // User doesn't exist in our database yet
-          router.push('/register')
-          return
+      // Now determine where to send the user based on their role
+      const userRole = authData.user.user_metadata?.role
+      
+      // If role is missing, always redirect to role selection
+      if (!userRole) {
+        console.log('No role found in user metadata, redirecting to role selection')
+        
+        // Create user in database first to ensure they exist
+        try {
+          const createResponse = await fetch('/api/auth/create-user', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: authData.user.id,
+              email: formData.email,
+              name: authData.user.user_metadata?.name || formData.email.split('@')[0],
+              needs_role_selection: true,
+            }),
+          })
+          
+          if (!createResponse.ok) {
+            console.error('Failed to create/update user profile:', await createResponse.text())
+          } else {
+            console.log('User profile created/updated successfully')
+          }
+        } catch (err) {
+          console.error('Error creating/updating user:', err)
+          // Continue anyway - we'll redirect to role selection
         }
-        throw new Error(data.message || 'Failed to get user information')
-      }
-
-      // Handle different user states
-      if (data.needsEmailVerification) {
-        // Redirect to email verification page
-        router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`)
+        
+        window.location.href = '/dashboard/role-selection'
         return
       }
 
-      if (data.needsRoleSelection) {
-        // Redirect to role selection page
-        router.push(`/dashboard/role-selection?email=${encodeURIComponent(formData.email)}`)
+      // Normalize role - handle different formats of the same role
+      const normalizedRole = userRole.replace('-', '_').toLowerCase()
+      console.log('Normalized role:', normalizedRole)
+      
+      // If we have a role, get its canonical form and redirect
+      let dashboardPath
+      
+      if (normalizedRole === 'talent') {
+        dashboardPath = '/dashboard/talent'
+      } else if (normalizedRole === 'hiring_manager') {
+        dashboardPath = '/dashboard/hiring-manager'
+      } else if (normalizedRole === 'admin') {
+        dashboardPath = '/dashboard/admin'
+      } else {
+        // Unrecognized role - redirect to role selection
+        console.log('Unrecognized role:', userRole, 'redirecting to role selection')
+        window.location.href = '/dashboard/role-selection'
         return
       }
 
-      // Redirect to the appropriate dashboard
-      router.push(data.redirectUrl)
+      console.log('Redirecting to dashboard:', dashboardPath)
+      window.location.href = dashboardPath
+      
     } catch (err) {
-      console.error('Login error:', err)
-      setError(err instanceof Error ? err.message : 'Login failed')
+      console.error('Unexpected login error:', err)
+      setError('An unexpected error occurred. Please try again.')
       setLoading(false)
     }
   }
@@ -293,7 +331,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <SocialLoginButtons onSocialLogin={handleSocialLogin} />
+                <SocialLoginButtons onProviderClick={handleSocialLogin} />
               </>
             )}
 
